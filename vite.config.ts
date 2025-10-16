@@ -16,13 +16,27 @@ export default defineConfig(({ mode }) => ({
       ".onrender.com"
     ] : undefined,
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react({
+      // Ensure proper JSX runtime for production
+      jsxRuntime: 'automatic',
+    }), 
+    mode === "development" && componentTagger()
+  ].filter(Boolean),
+  define: {
+    // Ensure proper production mode
+    'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
+    // Ensure production mode
+    minify: 'esbuild',
+    target: 'es2015',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
