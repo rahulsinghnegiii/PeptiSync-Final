@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: mode === "development" ? [
+      "localhost",
+      "127.0.0.1",
+      "peptisync-final.onrender.com",
+      "peptisync-nova.onrender.com",
+      ".onrender.com"
+    ] : undefined,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
