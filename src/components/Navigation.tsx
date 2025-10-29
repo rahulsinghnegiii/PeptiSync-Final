@@ -77,10 +77,10 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <Link to="/sign-in">
+                <Link to="/auth">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
-                <Link to="/sign-up">
+                <Link to="/auth">
                   <Button variant="hero" size="sm">Get Started</Button>
                 </Link>
               </>
@@ -144,10 +144,10 @@ const Navigation = () => {
                 </>
               ) : (
                 <>
-                  <Link to="/sign-in" onClick={() => setIsOpen(false)}>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
                     <Button variant="ghost" size="sm" className="w-full">Sign In</Button>
                   </Link>
-                  <Link to="/sign-up" onClick={() => setIsOpen(false)}>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
                     <Button variant="hero" size="sm" className="w-full">Get Started</Button>
                   </Link>
                 </>

@@ -104,8 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: {
           full_name: fullName,
         },
-        // Require email verification
-        emailRedirectTo: redirectUrl,
       },
     });
     
