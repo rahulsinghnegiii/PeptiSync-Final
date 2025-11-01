@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => ({
       "peptisync-final.onrender.com",
       "peptisync-nova.onrender.com",
       ".onrender.com"
+      "peptisync.com"
     ] : undefined,
   },
   plugins: [
