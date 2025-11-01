@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
       "127.0.0.1",
       "peptisync-final.onrender.com",
       "peptisync-nova.onrender.com",
-      ".onrender.com"
+      ".onrender.com",
       "peptisync.com"
     ] : undefined,
   },
