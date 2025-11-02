@@ -2,16 +2,16 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getDatabase, Database } from 'firebase/database';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 
-// Firebase configuration
+// Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyBI536Q0lETlOIshhgN2u7lbezACWmroFE",
-  authDomain: "peptisync.firebaseapp.com",
-  projectId: "peptisync",
-  storageBucket: "peptisync.firebasestorage.app",
-  messagingSenderId: "220814444992",
-  appId: "1:220814444992:web:a7425a91a3f801dccba025",
-  measurementId: "G-CSEGDG1F84",
-  databaseURL: "https://peptisync-default-rtdb.firebaseio.com",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
 };
 
 let app: FirebaseApp | null = null;
@@ -32,12 +32,12 @@ export const initializeFirebase = () => {
     try {
       app = initializeApp(firebaseConfig);
       database = getDatabase(app);
-      
+
       // Initialize analytics only in browser environment
       if (typeof window !== 'undefined') {
         analytics = getAnalytics(app);
       }
-      
+
       console.log('Firebase initialized successfully');
     } catch (error) {
       console.error('Firebase initialization error:', error);
