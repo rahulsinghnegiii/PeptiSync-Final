@@ -1,0 +1,40 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- DNA Helix with Peptide Structure -->
+  <defs>
+    <linearGradient id="cyan-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#1a1d26"/>
+  
+  <!-- DNA Helix structure -->
+  <!-- Left strand -->
+  <circle cx="10" cy="6" r="2.5" fill="url(#cyan-gradient)"/>
+  <circle cx="8" cy="12" r="2.5" fill="url(#cyan-gradient)"/>
+  <circle cx="10" cy="18" r="2.5" fill="url(#cyan-gradient)"/>
+  <circle cx="8" cy="24" r="2.5" fill="url(#cyan-gradient)"/>
+  
+  <!-- Right strand -->
+  <circle cx="22" cy="6" r="2.5" fill="url(#cyan-gradient)"/>
+  <circle cx="24" cy="12" r="2.5" fill="url(#cyan-gradient)"/>
+  <circle cx="22" cy="18" r="2.5" fill="url(#cyan-gradient)"/>
+  <circle cx="24" cy="24" r="2.5" fill="url(#cyan-gradient)"/>
+  
+  <!-- Connecting bonds -->
+  <line x1="10" y1="6" x2="22" y2="6" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="8" y1="12" x2="24" y2="12" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="10" y1="18" x2="22" y2="18" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="8" y1="24" x2="24" y2="24" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- Strand connections -->
+  <path d="M 10 6 Q 9 9 8 12" stroke="#00d4ff" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M 8 12 Q 9 15 10 18" stroke="#00d4ff" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M 10 18 Q 9 21 8 24" stroke="#00d4ff" stroke-width="2" fill="none" opacity="0.8"/>
+  
+  <path d="M 22 6 Q 23 9 24 12" stroke="#00d4ff" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M 24 12 Q 23 15 22 18" stroke="#00d4ff" stroke-width="2" fill="none" opacity="0.8"/>
+  <path d="M 22 18 Q 23 21 24 24" stroke="#00d4ff" stroke-width="2" fill="none" opacity="0.8"/>
+</svg>

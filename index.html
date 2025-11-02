@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,6 +15,35 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@peptisync" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Theme initialization script - prevents flash of unstyled content -->
+    <script>
+      (function() {
+        // Add no-transitions class to prevent animations on page load
+        document.documentElement.classList.add('no-transitions');
+        
+        // Get saved theme or detect system preference
+        const savedTheme = localStorage.getItem('theme-preference');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+        
+        // Apply theme immediately
+        document.documentElement.classList.add(theme);
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        // Remove no-transitions class after a brief delay
+        window.addEventListener('DOMContentLoaded', function() {
+          setTimeout(function() {
+            document.documentElement.classList.remove('no-transitions');
+          }, 100);
+        });
+      })();
+    </script>
   </head>
 
   <body>

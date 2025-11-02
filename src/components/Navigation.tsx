@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { CartDrawer } from "./CartDrawer";
+import { ThemeToggle } from "./ThemeToggle";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,6 +66,7 @@ const Navigation = () => {
             {user ? (
               <>
                 <CartDrawer />
+                <ThemeToggle />
                 <Link to="/dashboard">
                   <Button variant="ghost" size="sm">
                     <User className="w-4 h-4 mr-2" />
@@ -77,6 +79,8 @@ const Navigation = () => {
               </>
             ) : (
               <>
+                <CartDrawer />
+                <ThemeToggle />
                 <Link to="/auth">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
@@ -129,8 +133,9 @@ const Navigation = () => {
             <div className="flex flex-col space-y-2 pt-4">
               {user ? (
                 <>
-                  <div className="pb-2">
+                  <div className="pb-2 flex items-center gap-2">
                     <CartDrawer />
+                    <ThemeToggle />
                   </div>
                   <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                     <Button variant="ghost" size="sm" className="w-full justify-start">
@@ -144,6 +149,10 @@ const Navigation = () => {
                 </>
               ) : (
                 <>
+                  <div className="pb-2 flex items-center gap-2">
+                    <CartDrawer />
+                    <ThemeToggle />
+                  </div>
                   <Link to="/auth" onClick={() => setIsOpen(false)}>
                     <Button variant="ghost" size="sm" className="w-full">Sign In</Button>
                   </Link>

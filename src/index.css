@@ -7,26 +7,83 @@
 /* PeptiSync Futuristic Design System - Dark Mode Default */
 
 @layer base {
-  :root {
-    /* Core Dark Theme */
-    --background: 222 20% 6%;
-    --foreground: 210 40% 98%;
+  /* Light Mode (Default) */
+  :root, :root.light {
+    /* Backgrounds */
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 215 25% 15%; /* #1a1d26 */
 
-    /* Glass Surfaces */
-    --card: 222 20% 8%;
-    --card-foreground: 210 40% 98%;
-    --glass: 222 20% 10%;
-    --glass-border: 220 15% 20%;
+    /* Card Surfaces */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 215 25% 15%;
+    --glass: 210 20% 98%;
+    --glass-border: 220 13% 91%; /* #e5e7eb */
 
-    /* Neon Accents */
-    --primary: 195 100% 50%;
-    --primary-foreground: 222 20% 6%;
-    --secondary: 282 100% 70%;
-    --secondary-foreground: 222 20% 6%;
+    /* Cyan Accents (adjusted for light mode contrast) */
+    --primary: 188 91% 38%; /* #0891b2 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 262 83% 58%; /* #7c3aed */
+    --secondary-foreground: 0 0% 100%;
 
     /* Interactive States */
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 210 20% 96%; /* #f3f4f6 */
+    --muted-foreground: 215 16% 47%; /* #6b7280 */
+    --accent: 188 91% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    /* System Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 91%; /* #e5e7eb */
+    --input: 210 20% 96%;
+    --ring: 188 91% 38%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(188, 91%, 38%), hsl(170, 85%, 40%));
+    --gradient-secondary: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(280, 80%, 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(188, 91%, 38%) 0%, hsl(262, 83%, 58%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 50%, hsl(188, 91%, 38% / 0.15), transparent 70%);
+
+    /* Shadows */
+    --shadow-glass: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-neon: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    /* Border Radius */
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  /* Dark Mode (Lightened) */
+  :root.dark {
+    /* Backgrounds - Lightened from pure black */
+    --background: 215 25% 15%; /* #1a1d26 */
+    --foreground: 210 40% 98%;
+
+    /* Card Surfaces */
+    --card: 215 25% 18%; /* #1f2535 */
+    --card-foreground: 210 40% 98%;
+    --glass: 215 25% 20%; /* #252b3b */
+    --glass-border: 215 20% 26%; /* #2a3447 */
+
+    /* Cyan Accents (original bright cyan) */
+    --primary: 195 100% 50%; /* #00d4ff */
+    --primary-foreground: 215 25% 15%;
+    --secondary: 282 100% 70%; /* #8b5cf6 */
+    --secondary-foreground: 215 25% 15%;
+
+    /* Interactive States */
+    --muted: 215 20% 22%; /* #252b3b */
+    --muted-foreground: 220 15% 70%; /* #b0b8c9 */
     --accent: 195 100% 20%;
     --accent-foreground: 210 40% 98%;
 
@@ -37,8 +94,8 @@
     --success-foreground: 210 40% 98%;
 
     /* Borders & Inputs */
-    --border: 220 15% 20%;
-    --input: 220 15% 15%;
+    --border: 215 20% 26%; /* #2a3447 */
+    --input: 215 20% 22%;
     --ring: 195 100% 50%;
 
     /* Gradients */
@@ -48,7 +105,7 @@
     --gradient-glow: radial-gradient(circle at 50% 50%, hsl(195, 100%, 50% / 0.3), transparent 70%);
 
     /* Shadows & Glows */
-    --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.15);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
     --shadow-glow: 0 0 40px hsl(195, 100%, 50% / 0.3);
     --shadow-neon: 0 0 20px hsl(195, 100%, 50% / 0.5);
 
@@ -68,14 +125,33 @@
     @apply border-border;
   }
 
+  /* Prevent theme transition on page load */
+  html.no-transitions * {
+    transition: none !important;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Glass morphism utilities */
   .glass {
     @apply bg-glass/50 backdrop-blur-xl border border-glass-border/50;
+  }
+
+  /* Screen reader only utility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
   .glass-hover {
