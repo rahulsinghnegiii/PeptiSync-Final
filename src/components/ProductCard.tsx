@@ -6,11 +6,13 @@ import { motion } from "framer-motion";
 import { Product } from "@/hooks/useProducts";
 import { useNavigate } from "react-router-dom";
 import { OptimizedImage } from "@/components/OptimizedImage";
+import { QuantitySelector } from "@/components/QuantitySelector";
+import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
   index: number;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity: number) => void;
   onQuickView: (product: Product) => void;
 }
 
@@ -21,8 +23,10 @@ export const ProductCard = ({
   onQuickView,
 }: ProductCardProps) => {
   const navigate = useNavigate();
+  const [quantity, setQuantity] = useState(1);
   const isOutOfStock = product.stock_quantity <= 0;
   const isLowStock = product.stock_quantity > 0 && product.stock_quantity <= 5;
+  const maxQuantity = Math.min(product.stock_quantity, 99);
 
   return (
     <motion.div
@@ -36,7 +40,7 @@ export const ProductCard = ({
             <OptimizedImage
               src={product.image_url || "/placeholder.svg"}
               alt={`${product.name} - ${product.description.substring(0, 50)}`}
-              className="w-full h-48 group-hover:scale-110 transition-transform duration-500"
+              className="w-full h-48 group-hover:scale-105 transition-transform duration-300"
               width={400}
               height={192}
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -109,10 +113,26 @@ export const ProductCard = ({
 
           {/* Price */}
           <div className="flex items-center justify-between mb-4">
-            <span className="text-2xl font-bold text-gradient">
+            <span className="text-2xl font-bold text-primary">
               ${product.price.toFixed(2)}
             </span>
           </div>
+
+          {/* Quantity Selector */}
+          {!isOutOfStock && (
+            <div className="mb-4">
+              <label className="text-sm text-muted-foreground mb-2 block">
+                Quantity
+              </label>
+              <QuantitySelector
+                value={quantity}
+                onChange={setQuantity}
+                min={1}
+                max={maxQuantity}
+                size="sm"
+              />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-2">
@@ -127,9 +147,9 @@ export const ProductCard = ({
             <Button
               variant="hero"
               className="flex-1 group"
-              onClick={() => onAddToCart(product)}
+              onClick={() => onAddToCart(product, quantity)}
               disabled={isOutOfStock}
-              aria-label={isOutOfStock ? `${product.name} is out of stock` : `Add ${product.name} to cart for $${product.price.toFixed(2)}`}
+              aria-label={isOutOfStock ? `${product.name} is out of stock` : `Add ${quantity} ${product.name} to cart for $${(product.price * quantity).toFixed(2)}`}
             >
               <ShoppingCart className="w-4 h-4 mr-2" aria-hidden="true" />
               {isOutOfStock ? "Out of Stock" : "Add to Cart"}

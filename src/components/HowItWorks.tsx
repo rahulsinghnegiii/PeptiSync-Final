@@ -1,121 +1,115 @@
 import { motion } from "framer-motion";
-import { Calendar, Package, TrendingUp, Activity } from "lucide-react";
-import { useEventListener } from "@/hooks/useCleanup";
-import { useState, useRef, useEffect } from "react";
+import { Activity, Calendar, Package, TrendingUp } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface HowItWorksStep {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-const steps: HowItWorksStep[] = [
+const features = [
   {
-    icon: <Activity className="w-8 h-8 text-wellness-green-500" />,
+    icon: Activity,
     title: "Peptide Tracker",
-    description: "Log your peptide doses, track timing, and monitor your daily routine with ease. Never miss a dose again.",
+    description: "Log dose, time, injection site with ease. Track multiple peptides simultaneously with detailed history and never miss a dose.",
   },
   {
-    icon: <Calendar className="w-8 h-8 text-wellness-blue-500" />,
-    title: "Smart Calendar",
-    description: "Visualize your protocol schedule, set reminders, and plan your cycles with our intelligent calendar system.",
+    icon: Calendar,
+    title: "Protocol Calendar",
+    description: "Schedule and track your cycles. Visualize your protocol timeline with daily, weekly, and monthly views for complete oversight.",
   },
   {
-    icon: <Package className="w-8 h-8 text-wellness-coral-500" />,
-    title: "Inventory Management",
-    description: "Keep track of your peptide stock, expiration dates, and reorder alerts. Stay organized and prepared.",
+    icon: Package,
+    title: "Inventory Manager",
+    description: "Monitor supply levels automatically. Get low stock alerts and track batch numbers for safety and peace of mind.",
   },
   {
-    icon: <TrendingUp className="w-8 h-8 text-wellness-green-600" />,
+    icon: TrendingUp,
     title: "Progress Analytics",
-    description: "Visualize your results with detailed charts and insights. Make data-driven decisions about your protocols.",
+    description: "AI-powered insights for optimization. Visualize trends, track symptoms, and optimize your protocols with data-driven decisions.",
   },
 ];
 
-const HowItWorks = () => {
-  const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = parseInt(entry.target.getAttribute('data-index') || '0');
-            setVisibleSteps(prev => new Set(prev).add(index));
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
-
-    const stepElements = sectionRef.current?.querySelectorAll('[data-index]');
-    stepElements?.forEach(el => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
+export const HowItWorks = () => {
   return (
-    <section 
-      ref={sectionRef}
-      className="py-20 lg:py-32 bg-gradient-to-b from-white to-wellness-green-50/30"
-      aria-labelledby="how-it-works-heading"
-    >
+    <section className="py-20 bg-background" aria-labelledby="how-it-works-heading">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
-          initial={{ y: 30, opacity: 0 }}
+          initial={{ y: 20, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 
-            id="how-it-works-heading"
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-foreground"
-          >
-            How It Works
+          <h2 id="how-it-works-heading" className="text-4xl lg:text-5xl font-bold mb-4">
+            How It <span className="text-gradient">Works</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to manage your peptide protocols in one beautiful, intuitive platform.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Everything you need to track, manage, and optimize your peptide protocols in one powerful platform
           </p>
         </motion.div>
 
-        {/* Steps Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, index) => (
-            <motion.div
-              key={step.title}
-              data-index={index}
-              initial={{ y: 50, opacity: 0 }}
-              animate={visibleSteps.has(index) ? { y: 0, opacity: 1 } : {}}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="wellness-card-hover p-6 text-center group"
-            >
-              {/* Icon */}
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
               <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-wellness-green-50 to-wellness-blue-50 mb-4 group-hover:shadow-medium transition-shadow"
+                key={feature.title}
+                initial={{ y: 50, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
               >
-                {step.icon}
+                <Card 
+                  className="glass border-glass-border h-full group hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 hover:shadow-xl"
+                  role="article"
+                  aria-labelledby={`feature-${index}-title`}
+                >
+                  <CardContent className="p-8">
+                    {/* Icon */}
+                    <div className="mb-6 inline-flex p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                      <Icon 
+                        className="w-8 h-8 text-primary" 
+                        aria-hidden="true"
+                      />
+                    </div>
+
+                    {/* Title */}
+                    <h3 
+                      id={`feature-${index}-title`}
+                      className="text-2xl font-bold mb-3 group-hover:text-gradient transition-all duration-300"
+                    >
+                      {feature.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
-
-              {/* Title */}
-              <h3 className="text-xl font-semibold mb-3 text-foreground">
-                {step.title}
-              </h3>
-
-              {/* Description */}
-              <p className="text-muted-foreground leading-relaxed">
-                {step.description}
-              </p>
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* Optional CTA */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="text-center mt-12"
+        >
+          <p className="text-muted-foreground mb-4">
+            Ready to take control of your peptide journey?
+          </p>
+          <a
+            href="/auth"
+            className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300"
+            aria-label="Get started with PeptiSync"
+          >
+            Get Started Free
+          </a>
+        </motion.div>
       </div>
     </section>
   );
 };
-
-export default HowItWorks;

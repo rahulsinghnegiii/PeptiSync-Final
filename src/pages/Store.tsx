@@ -144,7 +144,7 @@ const Store = () => {
     setSearchParams(params, { replace: true });
   }, [filters, sortBy, searchQuery, setSearchParams]);
 
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = async (product: Product, quantity: number = 1) => {
     if (!user) {
       toast.info("Please sign in to add items to cart");
       navigate("/auth");
@@ -156,7 +156,7 @@ const Store = () => {
       productName: product.name,
       productPrice: product.price,
       productImage: product.image_url,
-      quantity: 1,
+      quantity,
     });
   };
 
