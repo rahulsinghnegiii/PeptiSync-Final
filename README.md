@@ -18,24 +18,24 @@
 ## 🚀 Quick Links
 
 ### 📖 Getting Started
-- **[QUICK_START.md](QUICK_START.md)** ⭐ **START HERE** - Get running in 10 minutes
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** 🔥 **CHEAT SHEET** - Essential commands & info
-- **[ADMIN_ACCESS_GUIDE.md](ADMIN_ACCESS_GUIDE.md)** 🔐 **ADMIN SETUP** - Access admin panel
-- **[PROJECT_README.md](PROJECT_README.md)** - Complete project overview
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deploy to production
+- **[docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)** ⭐ **START HERE** - Get running in 10 minutes
+- **[docs/guides/QUICK_REFERENCE.md](docs/guides/QUICK_REFERENCE.md)** 🔥 **CHEAT SHEET** - Essential commands & info
+- **[docs/guides/ADMIN_ACCESS_GUIDE.md](docs/guides/ADMIN_ACCESS_GUIDE.md)** 🔐 **ADMIN SETUP** - Access admin panel
+- **[docs/guides/PROJECT_README.md](docs/guides/PROJECT_README.md)** - Complete project overview
+
+### 🚀 Deployment
+- **[docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)** - Deploy to production
+- **[docs/deployment/DEPLOYMENT_CHECKLIST.md](docs/deployment/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment verification
+- **[docs/deployment/RESPONSIVE_DESIGN.md](docs/deployment/RESPONSIVE_DESIGN.md)** - Mobile optimization guide
 
 ### 🔒 Security & Testing
-- **[SECURITY.md](SECURITY.md)** - Security implementation details
-- **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Complete testing guide
-- **[INTEGRATION_TESTING.md](INTEGRATION_TESTING.md)** - End-to-end testing
+- **[docs/security/SECURITY.md](docs/security/SECURITY.md)** - Security implementation details
+- **[docs/TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md)** - Complete testing guide
+- **[docs/INTEGRATION_TESTING.md](docs/INTEGRATION_TESTING.md)** - End-to-end testing
 
-### 📋 Deployment
-- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Pre-deployment verification
-- **[RESPONSIVE_DESIGN.md](RESPONSIVE_DESIGN.md)** - Mobile optimization guide
-
-### 📊 Project Status
-- **[PROJECT_COMPLETION_SUMMARY.md](PROJECT_COMPLETION_SUMMARY.md)** - Feature completion status
-- **[FINAL_DELIVERY_SUMMARY.md](FINAL_DELIVERY_SUMMARY.md)** - Complete delivery summary
+### 🛠️ Development & Troubleshooting
+- **[docs/development/](docs/development/)** - Development guides and task summaries
+- **[docs/troubleshooting/](docs/troubleshooting/)** - Troubleshooting guides
 
 ---
 
@@ -88,7 +88,7 @@ npx supabase db push
 npm run dev
 ```
 
-**Full instructions:** See [QUICK_START.md](QUICK_START.md)
+**Full instructions:** See [docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)
 
 ---
 
@@ -118,7 +118,7 @@ ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
 - 🛍️ **Order Management** - Status updates, tracking
 - 👥 **User Management** - View users and their orders
 
-**Detailed guide:** See [ADMIN_ACCESS_GUIDE.md](ADMIN_ACCESS_GUIDE.md)
+**Detailed guide:** See [docs/guides/ADMIN_ACCESS_GUIDE.md](docs/guides/ADMIN_ACCESS_GUIDE.md)
 
 ---
 
@@ -155,7 +155,7 @@ VITE_APP_URL=http://localhost:8080
    npx supabase secrets set STRIPE_SECRET_KEY=sk_test_your_secret_key
    ```
 
-**Full setup:** See [QUICK_START.md](QUICK_START.md)
+**Full setup:** See [docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)
 
 ---
 
@@ -343,7 +343,7 @@ git push origin main
 netlify deploy --prod
 ```
 
-**Full guide:** See [DEPLOYMENT.md](DEPLOYMENT.md)
+**Full guide:** See [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
 
 ---
 
@@ -386,7 +386,7 @@ netlify deploy --prod
 - ✅ Session management
 - ✅ Input validation
 
-**Details:** See [SECURITY.md](SECURITY.md)
+**Details:** See [docs/security/SECURITY.md](docs/security/SECURITY.md)
 
 ---
 
@@ -424,7 +424,7 @@ netlify deploy --prod
 - ✅ Responsive images
 - ✅ Fluid typography
 
-**Details:** See [RESPONSIVE_DESIGN.md](RESPONSIVE_DESIGN.md)
+**Details:** See [docs/deployment/RESPONSIVE_DESIGN.md](docs/deployment/RESPONSIVE_DESIGN.md)
 
 ---
 
@@ -437,30 +437,30 @@ netlify deploy --prod
 - ✅ Performance testing
 
 **Guides:**
-- [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)
-- [INTEGRATION_TESTING.md](INTEGRATION_TESTING.md)
+- [docs/TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md)
+- [docs/INTEGRATION_TESTING.md](docs/INTEGRATION_TESTING.md)
 
 ---
 
 ## 📚 Documentation Index
 
 ### Essential Guides
-1. **[QUICK_START.md](QUICK_START.md)** - Get started in 10 minutes ⭐
-2. **[PROJECT_README.md](PROJECT_README.md)** - Complete overview
-3. **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide
+1. **[docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)** - Get started in 10 minutes ⭐
+2. **[docs/guides/PROJECT_README.md](docs/guides/PROJECT_README.md)** - Complete overview
+3. **[docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)** - Deployment guide
 
 ### Security & Testing
-4. **[SECURITY.md](SECURITY.md)** - Security details
-5. **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Testing guide
-6. **[INTEGRATION_TESTING.md](INTEGRATION_TESTING.md)** - E2E testing
+4. **[docs/security/SECURITY.md](docs/security/SECURITY.md)** - Security details
+5. **[docs/TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md)** - Testing guide
+6. **[docs/INTEGRATION_TESTING.md](docs/INTEGRATION_TESTING.md)** - E2E testing
 
 ### Deployment & Operations
-7. **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Pre-deployment
-8. **[RESPONSIVE_DESIGN.md](RESPONSIVE_DESIGN.md)** - Mobile guide
+7. **[docs/deployment/DEPLOYMENT_CHECKLIST.md](docs/deployment/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment
+8. **[docs/deployment/RESPONSIVE_DESIGN.md](docs/deployment/RESPONSIVE_DESIGN.md)** - Mobile guide
 
-### Project Status
-9. **[PROJECT_COMPLETION_SUMMARY.md](PROJECT_COMPLETION_SUMMARY.md)** - Status
-10. **[FINAL_DELIVERY_SUMMARY.md](FINAL_DELIVERY_SUMMARY.md)** - Delivery
+### Development & Troubleshooting
+9. **[docs/development/](docs/development/)** - Development guides and summaries
+10. **[docs/troubleshooting/](docs/troubleshooting/)** - Troubleshooting guides
 
 ---
 
@@ -525,11 +525,11 @@ npx supabase functions deploy send-email
 ### Getting Help
 
 **Documentation:**
-- 📖 [QUICK_START.md](QUICK_START.md) - Setup guide
-- 🔐 [ADMIN_ACCESS_GUIDE.md](ADMIN_ACCESS_GUIDE.md) - Admin panel access
-- 🔒 [SECURITY.md](SECURITY.md) - Security details
-- 🧪 [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md) - Testing guide
-- 🚀 [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment guide
+- 📖 [docs/guides/QUICK_START.md](docs/guides/QUICK_START.md) - Setup guide
+- 🔐 [docs/guides/ADMIN_ACCESS_GUIDE.md](docs/guides/ADMIN_ACCESS_GUIDE.md) - Admin panel access
+- 🔒 [docs/security/SECURITY.md](docs/security/SECURITY.md) - Security details
+- 🧪 [docs/TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md) - Testing guide
+- 🚀 [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md) - Deployment guide
 
 **External Resources:**
 - [Supabase Documentation](https://supabase.com/docs)
@@ -556,7 +556,7 @@ MIT License - See LICENSE file for details
 - Performance optimized
 - Deployment ready
 
-**Ready to deploy!** Start with [QUICK_START.md](QUICK_START.md)
+**Ready to deploy!** Start with [docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)
 
 ---
 
@@ -564,6 +564,6 @@ MIT License - See LICENSE file for details
 
 **Built with ❤️ for PeptiSync**
 
-[Get Started](QUICK_START.md) • [Documentation](PROJECT_README.md) • [Deploy](DEPLOYMENT.md)
+[Get Started](docs/guides/QUICK_START.md) • [Documentation](docs/guides/PROJECT_README.md) • [Deploy](docs/deployment/DEPLOYMENT.md)
 
 </div>

@@ -16,7 +16,30 @@ interface QueryPerformanceMetrics {
 
 // In-memory store for performance metrics (client-side only)
 const performanceMetrics: QueryPerformanceMetrics[] = [];
-const MAX_METRICS_STORED = 100;
+const MAX_METRICS_STORED = 50; // Reduced from 100 to save memory
+const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // Clean up old metrics every 10 minutes
+
+// Automatic cleanup of old metrics to prevent memory buildup
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    const maxAge = 30 * 60 * 1000; // Keep metrics for 30 minutes max
+    
+    // Remove metrics older than maxAge
+    const filtered = performanceMetrics.filter(
+      metric => now - metric.timestamp.getTime() < maxAge
+    );
+    
+    // Clear array and repopulate
+    performanceMetrics.length = 0;
+    performanceMetrics.push(...filtered);
+    
+    // Also enforce max size limit
+    if (performanceMetrics.length > MAX_METRICS_STORED) {
+      performanceMetrics.splice(0, performanceMetrics.length - MAX_METRICS_STORED);
+    }
+  }, CLEANUP_INTERVAL_MS);
+}
 
 /**
  * Measure query execution time

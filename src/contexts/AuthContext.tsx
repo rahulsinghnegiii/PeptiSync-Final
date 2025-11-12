@@ -140,6 +140,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     sessionManager.stop();
+    
+    // Clear React Query cache on logout to prevent memory buildup
+    // This is important for preventing memory leaks when users log out/in frequently
+    try {
+      // Import queryClient from App.tsx
+      const { queryClient } = await import("@/App");
+      if (queryClient) {
+        // Clear all queries from cache
+        queryClient.getQueryCache().clear();
+        // Also clear mutation cache
+        queryClient.getMutationCache().clear();
+      }
+    } catch (error) {
+      // Silently fail - cache will be cleared on next page load
+      console.warn("Failed to clear query cache on logout:", error);
+    }
+    
     await supabase.auth.signOut();
   };
 

@@ -62,8 +62,9 @@ export const useCart = () => {
   useEffect(() => {
     if (!user) return;
 
+    const channelName = `cart-changes-${user.id}`;
     const channel = supabase
-      .channel("cart-changes")
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -79,6 +80,8 @@ export const useCart = () => {
       .subscribe();
 
     return () => {
+      // Properly unsubscribe and remove channel to prevent memory leaks
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [user, queryClient]);

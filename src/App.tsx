@@ -10,6 +10,32 @@ import { LoadingFallback } from "@/components/LoadingFallback";
 import { SkipNavigation } from "@/components/SkipNavigation";
 import { ProtectedRoute, GuestOnly } from "@/components/ProtectedRoute";
 
+// Export queryClient for use in other files (e.g., AuthContext for cache clearing)
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache data for 5 minutes by default
+      staleTime: 5 * 60 * 1000,
+      // Keep unused data in cache for 10 minutes (prevents memory buildup)
+      gcTime: 10 * 60 * 1000,
+      // Retry failed requests once
+      retry: 1,
+      // Don't refetch on window focus for better performance
+      refetchOnWindowFocus: false,
+      // Refetch on mount only if data is stale
+      refetchOnMount: true,
+      // Don't refetch on reconnect by default
+      refetchOnReconnect: false,
+    },
+    mutations: {
+      // Retry failed mutations once
+      retry: 1,
+      // Clear mutation cache immediately after completion
+      gcTime: 0,
+    },
+  },
+});
+
 // Lazy load page components for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -28,29 +54,29 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 
 
-// Configure React Query with optimized caching strategy
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Cache data for 5 minutes by default
-      staleTime: 5 * 60 * 1000,
-      // Keep unused data in cache for 10 minutes
-      gcTime: 10 * 60 * 1000,
-      // Retry failed requests once
-      retry: 1,
-      // Don't refetch on window focus for better performance
-      refetchOnWindowFocus: false,
-      // Refetch on mount only if data is stale
-      refetchOnMount: true,
-      // Don't refetch on reconnect by default
-      refetchOnReconnect: false,
-    },
-    mutations: {
-      // Retry failed mutations once
-      retry: 1,
-    },
-  },
-});
+
+// Periodic cache cleanup to prevent memory buildup
+if (typeof window !== 'undefined') {
+  // Clean up inactive queries every 10 minutes to prevent memory leaks
+  setInterval(() => {
+    const queryCache = queryClient.getQueryCache();
+    const queries = queryCache.getAll();
+    
+    // Remove queries that are inactive and past their gcTime
+    queries.forEach(query => {
+      if (query.getObserversCount() === 0) {
+        // Query has no active observers, check if it's past gcTime
+        const queryState = query.state;
+        const dataUpdatedAt = queryState.dataUpdatedAt || 0;
+        const gcTime = query.options.gcTime ?? 10 * 60 * 1000;
+        
+        if (Date.now() - dataUpdatedAt > gcTime) {
+          queryCache.remove(query);
+        }
+      }
+    });
+  }, 10 * 60 * 1000); // Run every 10 minutes
+}
 
 const App = () => {
   return (
