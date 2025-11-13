@@ -34,46 +34,61 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Ensure production mode
+    // Ensure production mode with aggressive optimization
     minify: 'esbuild',
     target: 'es2015',
     sourcemap: false,
+    // Reduce chunk size to save memory during build
+    chunkSizeWarningLimit: 500,
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Optimize assets - reduce inline limit to save memory
+    assetsInlineLimit: 2048, // 2kb - reduced from 4kb
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React vendor bundle
-          'react-vendor': [
-            'react',
-            'react-dom',
-            'react-router-dom',
-          ],
-          // UI vendor bundle (Radix UI components)
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-label',
-            '@radix-ui/react-slot',
-          ],
-          // Supabase bundle
-          'supabase': [
-            '@supabase/supabase-js',
-          ],
-          // Form and validation bundle
-          'form-vendor': [
-            'react-hook-form',
-            'zod',
-            '@hookform/resolvers',
-          ],
-          // Query and state management
-          'query-vendor': [
-            '@tanstack/react-query',
-          ],
+        // More aggressive code splitting to reduce memory usage
+        manualChunks: (id) => {
+          // Split node_modules into smaller chunks
+          if (id.includes('node_modules')) {
+            // React core
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-core';
+            }
+            // Radix UI - split into smaller chunks
+            if (id.includes('@radix-ui')) {
+              return 'radix-ui';
+            }
+            // Supabase
+            if (id.includes('@supabase')) {
+              return 'supabase';
+            }
+            // React Query
+            if (id.includes('@tanstack/react-query')) {
+              return 'react-query';
+            }
+            // Form libraries
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'forms';
+            }
+            // Stripe
+            if (id.includes('@stripe')) {
+              return 'stripe';
+            }
+            // Firebase
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+            // UI utilities
+            if (id.includes('framer-motion') || id.includes('lucide-react')) {
+              return 'ui-utils';
+            }
+            // Other vendor code
+            return 'vendor';
+          }
         },
+        // Optimize chunk naming for better caching
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
         // Add asset file names with hash for cache busting
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split('.');
@@ -92,12 +107,8 @@ export default defineConfig(({ mode }) => ({
           return `assets/[name]-[hash][extname]`;
         },
       },
+      // Optimize dependencies to reduce bundle size
+      external: [],
     },
-    // Optimize chunk size warnings
-    chunkSizeWarningLimit: 1000,
-    // Enable CSS code splitting
-    cssCodeSplit: true,
-    // Optimize assets
-    assetsInlineLimit: 4096, // 4kb - inline small assets as base64
   },
 }));

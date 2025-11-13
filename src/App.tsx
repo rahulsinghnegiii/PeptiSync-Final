@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,10 +14,10 @@ import { ProtectedRoute, GuestOnly } from "@/components/ProtectedRoute";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Cache data for 5 minutes by default
-      staleTime: 5 * 60 * 1000,
-      // Keep unused data in cache for 10 minutes (prevents memory buildup)
-      gcTime: 10 * 60 * 1000,
+      // Cache data for 2 minutes by default (reduced from 5 minutes)
+      staleTime: 2 * 60 * 1000,
+      // Keep unused data in cache for 5 minutes (reduced from 10 minutes to save memory)
+      gcTime: 5 * 60 * 1000,
       // Retry failed requests once
       retry: 1,
       // Don't refetch on window focus for better performance
@@ -53,12 +53,13 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 
-
+// Store cleanup interval ID for proper cleanup
+let cacheCleanupInterval: NodeJS.Timeout | null = null;
 
 // Periodic cache cleanup to prevent memory buildup
 if (typeof window !== 'undefined') {
-  // Clean up inactive queries every 10 minutes to prevent memory leaks
-  setInterval(() => {
+  // Clean up inactive queries every 5 minutes to prevent memory leaks (reduced from 10 minutes)
+  cacheCleanupInterval = setInterval(() => {
     const queryCache = queryClient.getQueryCache();
     const queries = queryCache.getAll();
     
@@ -68,17 +69,51 @@ if (typeof window !== 'undefined') {
         // Query has no active observers, check if it's past gcTime
         const queryState = query.state;
         const dataUpdatedAt = queryState.dataUpdatedAt || 0;
-        const gcTime = query.options.gcTime ?? 10 * 60 * 1000;
+        const gcTime = query.options.gcTime ?? 5 * 60 * 1000;
         
         if (Date.now() - dataUpdatedAt > gcTime) {
           queryCache.remove(query);
         }
       }
     });
-  }, 10 * 60 * 1000); // Run every 10 minutes
+  }, 5 * 60 * 1000); // Run every 5 minutes (reduced from 10)
+}
+
+// Export cleanup function for global cleanup
+export const cleanupApp = () => {
+  if (cacheCleanupInterval) {
+    clearInterval(cacheCleanupInterval);
+    cacheCleanupInterval = null;
+  }
+  
+  // Clear all query caches
+  queryClient.getQueryCache().clear();
+  queryClient.getMutationCache().clear();
+  
+  // Stop memory manager
+  import('@/lib/memoryManager').then(({ memoryManager }) => {
+    memoryManager.stopMonitoring();
+  }).catch(() => {
+    // Ignore if module not available
+  });
+  
+  // Clear performance metrics
+  import('@/lib/queryPerformance').then(({ stopPerformanceMonitoring }) => {
+    stopPerformanceMonitoring();
+  }).catch(() => {
+    // Ignore if module not available
+  });
 }
 
 const App = () => {
+  // Setup global cleanup on unmount
+  useEffect(() => {
+    // Cleanup function runs when app unmounts
+    return () => {
+      cleanupApp();
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

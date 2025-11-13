@@ -16,14 +16,17 @@ interface QueryPerformanceMetrics {
 
 // In-memory store for performance metrics (client-side only)
 const performanceMetrics: QueryPerformanceMetrics[] = [];
-const MAX_METRICS_STORED = 50; // Reduced from 100 to save memory
-const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // Clean up old metrics every 10 minutes
+const MAX_METRICS_STORED = 30; // Reduced from 50 to save more memory
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // Clean up old metrics every 5 minutes (reduced from 10)
+
+// Store interval ID for cleanup
+let cleanupIntervalId: NodeJS.Timeout | null = null;
 
 // Automatic cleanup of old metrics to prevent memory buildup
 if (typeof window !== 'undefined') {
-  setInterval(() => {
+  cleanupIntervalId = setInterval(() => {
     const now = Date.now();
-    const maxAge = 30 * 60 * 1000; // Keep metrics for 30 minutes max
+    const maxAge = 15 * 60 * 1000; // Keep metrics for 15 minutes max (reduced from 30)
     
     // Remove metrics older than maxAge
     const filtered = performanceMetrics.filter(
@@ -39,6 +42,18 @@ if (typeof window !== 'undefined') {
       performanceMetrics.splice(0, performanceMetrics.length - MAX_METRICS_STORED);
     }
   }, CLEANUP_INTERVAL_MS);
+}
+
+/**
+ * Stop performance monitoring and cleanup
+ */
+export const stopPerformanceMonitoring = () => {
+  if (cleanupIntervalId) {
+    clearInterval(cleanupIntervalId);
+    cleanupIntervalId = null;
+  }
+  // Clear all metrics
+  performanceMetrics.length = 0;
 }
 
 /**

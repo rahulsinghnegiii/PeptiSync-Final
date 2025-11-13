@@ -5,6 +5,8 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     pullRequestPreviewsEnabled: true
+    # NO startCommand - static sites are served by Render's CDN (no Node.js runtime)
+    # This saves ~50-150MB of memory compared to running a Node.js server
     
     # Environment Variables
     envVars:

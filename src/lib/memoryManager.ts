@@ -24,9 +24,9 @@ declare global {
 
 class MemoryManager {
   private checkInterval: NodeJS.Timeout | null = null;
-  private readonly WARNING_THRESHOLD = 100 * 1024 * 1024; // 100MB
-  private readonly CRITICAL_THRESHOLD = 200 * 1024 * 1024; // 200MB
-  private readonly CHECK_INTERVAL = 60 * 1000; // Check every minute
+  private readonly WARNING_THRESHOLD = 80 * 1024 * 1024; // 80MB (reduced from 100MB)
+  private readonly CRITICAL_THRESHOLD = 150 * 1024 * 1024; // 150MB (reduced from 200MB)
+  private readonly CHECK_INTERVAL = 2 * 60 * 1000; // Check every 2 minutes (reduced from 1 minute)
 
   /**
    * Start monitoring memory usage
@@ -147,10 +147,18 @@ class MemoryManager {
 export const memoryManager = new MemoryManager();
 
 // Auto-start monitoring in production (can be disabled if needed)
-if (typeof window !== 'undefined' && import.meta.env.PROD) {
+// Disabled by default to save memory - can be enabled manually if needed
+if (typeof window !== 'undefined' && import.meta.env.PROD && false) {
   // Only start in production if memory API is available
   if (performance.memory) {
     memoryManager.startMonitoring();
   }
+}
+
+// Ensure cleanup on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    memoryManager.stopMonitoring();
+  });
 }
 
