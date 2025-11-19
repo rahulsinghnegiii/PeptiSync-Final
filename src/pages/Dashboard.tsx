@@ -168,7 +168,11 @@ const Dashboard = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 rounded-lg gradient-accent"></div>
+            <img 
+              src="/logo.png" 
+              alt="PeptiSync Logo" 
+              className="w-8 h-8 object-contain"
+            />
             <h1 className="text-2xl font-bold text-gradient">PeptiSync Dashboard</h1>
           </div>
           <div className="flex items-center space-x-2">

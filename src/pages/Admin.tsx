@@ -21,7 +21,11 @@ const Admin = () => {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <div className="w-8 h-8 rounded-lg gradient-accent"></div>
+              <img 
+                src="/logo.png" 
+                alt="PeptiSync Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <h1 className="text-2xl font-bold text-gradient">Admin Panel</h1>
             </div>
           </div>

@@ -42,7 +42,11 @@ const Navigation = () => {
               whileHover={{ scale: 1.05 }}
               className="flex items-center space-x-2"
             >
-              <div className="w-8 h-8 rounded-lg gradient-accent" aria-hidden="true"></div>
+              <img 
+                src="/logo.png" 
+                alt="PeptiSync Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <span className="text-xl font-bold text-gradient">PeptiSync</span>
             </motion.div>
           </Link>

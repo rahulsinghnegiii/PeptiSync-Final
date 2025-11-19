@@ -90,7 +90,11 @@ const Footer = () => {
             {/* Brand Section */}
             <motion.div variants={itemVariants} className="lg:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 rounded-lg gradient-accent"></div>
+                <img 
+                  src="/logo.png" 
+                  alt="PeptiSync Logo" 
+                  className="w-8 h-8 object-contain"
+                />
                 <span className="text-xl font-bold text-gradient">PeptiSync</span>
               </div>
               
@@ -188,7 +192,7 @@ const Footer = () => {
             
             <div className="mt-4 md:mt-0 flex space-x-6">
               <a 
-                href="/legal" 
+                href="/privacy-policy" 
                 className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
               >
                 Privacy

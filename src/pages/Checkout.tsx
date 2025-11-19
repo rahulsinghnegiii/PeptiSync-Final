@@ -219,7 +219,11 @@ const Checkout = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg gradient-accent"></div>
+              <img 
+                src="/logo.png" 
+                alt="PeptiSync Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <h1 className="text-2xl font-bold text-gradient">Checkout</h1>
             </div>
           </div>

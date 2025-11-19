@@ -52,6 +52,7 @@ const OrderTracking = lazy(() => import("./pages/OrderTracking"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 // Store cleanup interval ID for proper cleanup
 let cacheCleanupInterval: NodeJS.Timeout | null = null;
@@ -149,6 +150,7 @@ const App = () => {
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                   {/* Public routes */}
                   <Route path="/store/:productId" element={<ProductDetail />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

@@ -169,7 +169,11 @@ const Auth = () => {
               <Card className="glass border-glass-border shadow-2xl">
                 <CardHeader className="text-center pb-6">
                   <div className="flex items-center justify-center mb-4">
-                    <div className="w-12 h-12 rounded-lg gradient-accent"></div>
+                    <img 
+                      src="/logo.png" 
+                      alt="PeptiSync Logo" 
+                      className="w-12 h-12 object-contain"
+                    />
                   </div>
                   <CardTitle className="text-2xl font-bold text-gradient">
                     Welcome to PeptiSync
