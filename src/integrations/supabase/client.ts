@@ -5,15 +5,26 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+// Debug logging
+console.log('[Supabase Client] Initializing...', {
+  url: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'MISSING',
+  key: SUPABASE_PUBLISHABLE_KEY ? `${SUPABASE_PUBLISHABLE_KEY.substring(0, 20)}...` : 'MISSING',
+  env: import.meta.env.MODE,
+  allEnvKeys: Object.keys(import.meta.env)
+});
+
 // Validate environment variables
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  console.error('Missing Supabase environment variables:', {
-    VITE_SUPABASE_URL: SUPABASE_URL ? 'Set' : 'Missing',
-    VITE_SUPABASE_PUBLISHABLE_KEY: SUPABASE_PUBLISHABLE_KEY ? 'Set' : 'Missing'
-  });
-  throw new Error(
-    'Missing Supabase environment variables. Please check your Vercel environment variables configuration.'
-  );
+  const errorMsg = `Missing Supabase environment variables:
+    VITE_SUPABASE_URL: ${SUPABASE_URL ? 'Set' : 'MISSING'}
+    VITE_SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY ? 'Set' : 'MISSING'}
+    
+    Available env vars: ${Object.keys(import.meta.env).join(', ')}
+    
+    Please check your Vercel environment variables configuration.`;
+  
+  console.error('[Supabase Client]', errorMsg);
+  throw new Error(errorMsg);
 }
 
 // Import the supabase client like this:
