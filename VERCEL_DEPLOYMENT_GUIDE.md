@@ -51,39 +51,48 @@ vercel --prod
 
 ---
 
-## 🔑 Environment Variables
+## 🔑 Environment Variables Setup
 
-### Required Variables
+### ⚠️ IMPORTANT: Add These in Vercel Dashboard
 
-Add these in Vercel Dashboard → Project Settings → Environment Variables:
+**DO NOT use Vercel Secrets** - Add these as regular Environment Variables instead.
+
+Go to: **Vercel Dashboard → Your Project → Settings → Environment Variables**
+
+### Required Variables (Copy these exactly)
 
 #### 1. Supabase Configuration
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key_here
+```
+Variable Name: VITE_SUPABASE_URL
+Value: https://ntcydolfuonagdtdhpot.supabase.co
+Environment: Production, Preview, Development (select all)
 ```
 
-**Where to find:**
-- Go to [supabase.com/dashboard](https://supabase.com/dashboard)
-- Select your project
-- Go to Settings → API
-- Copy "Project URL" and "anon/public" key
+```
+Variable Name: VITE_SUPABASE_PUBLISHABLE_KEY
+Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y3lkb2xmdW9uYWdkdGRocG90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1NjEzMjQsImV4cCI6MjA3NjEzNzMyNH0.VZt8cGPoIWQC4bQlzq792UUr4Ghazycso-9ySnPCA-k
+Environment: Production, Preview, Development (select all)
+```
 
 #### 2. Stripe Configuration
-```env
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_your_key_here
+```
+Variable Name: VITE_STRIPE_PUBLISHABLE_KEY
+Value: pk_test_your_key_here (⚠️ REPLACE WITH YOUR ACTUAL KEY)
+Environment: Production, Preview, Development (select all)
 ```
 
-**Where to find:**
+**Where to find your Stripe key:**
 - Go to [dashboard.stripe.com/apikeys](https://dashboard.stripe.com/apikeys)
-- Copy "Publishable key" (use `pk_live_` for production, `pk_test_` for testing)
+- Copy "Publishable key" (use `pk_test_` for testing)
 
 #### 3. Application URL
-```env
-VITE_APP_URL=https://your-domain.vercel.app
+```
+Variable Name: VITE_APP_URL
+Value: https://your-domain.vercel.app (⚠️ UPDATE AFTER FIRST DEPLOYMENT)
+Environment: Production, Preview, Development (select all)
 ```
 
-**Note:** Update this after first deployment with your actual Vercel URL
+**Note:** After your first deployment, Vercel will give you a URL like `https://pepti-sync-final.vercel.app`. Update this variable with that URL.
 
 #### 4. Firebase Configuration (Optional - if using Firebase features)
 ```env
