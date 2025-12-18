@@ -45,5 +45,5 @@ supabase/
 # Other config files
 .eslintrc*
 .prettierrc*
-tsconfig.node.json
+# tsconfig.node.json - NEEDED FOR BUILD, DO NOT IGNORE
 
