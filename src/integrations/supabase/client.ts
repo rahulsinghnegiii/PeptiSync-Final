@@ -13,6 +13,10 @@ console.log('[Supabase Client] Initializing...', {
   allEnvKeys: Object.keys(import.meta.env)
 });
 
+// Use fallback values to prevent app crash if env vars are missing
+const FALLBACK_URL = 'https://placeholder.supabase.co';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTI4MDAsImV4cCI6MTk2MDc2ODgwMH0.placeholder';
+
 // Validate environment variables
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   const errorMsg = `Missing Supabase environment variables:
@@ -21,15 +25,16 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     
     Available env vars: ${Object.keys(import.meta.env).join(', ')}
     
-    Please check your Vercel environment variables configuration.`;
+    Please check your deployment platform environment variables configuration.`;
   
   console.error('[Supabase Client]', errorMsg);
+  console.error('[Supabase Client] Using fallback values - app will not function properly!');
   
-  // Show error on page for better debugging
+  // Show error on page after React loads
   if (typeof document !== 'undefined') {
     setTimeout(() => {
       const root = document.getElementById('root');
-      if (root) {
+      if (root && root.children.length === 0) {
         root.innerHTML = `
           <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1e1e2e 0%, #2d1b4e 100%); color: #fff; min-height: 100vh;">
             <div style="max-width: 800px; margin: 0 auto;">
@@ -43,35 +48,38 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
               <div style="background: rgba(139, 92, 246, 0.1); border: 2px solid #8b5cf6; border-radius: 12px; padding: 24px;">
                 <h2 style="color: #8b5cf6; margin-top: 0; margin-bottom: 16px;">How to Fix:</h2>
                 <ol style="line-height: 1.8; padding-left: 24px;">
-                  <li>Go to <strong>Vercel Dashboard → Your Project → Settings → Environment Variables</strong></li>
-                  <li>Make sure these variables are set with the <strong>exact names</strong>:
+                  <li>Go to <strong>Vercel/Netlify Dashboard → Your Project → Settings → Environment Variables</strong></li>
+                  <li>Add these variables with the <strong>exact names</strong>:
                     <ul style="margin-top: 8px; margin-bottom: 8px;">
                       <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_URL</code></li>
                       <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_PUBLISHABLE_KEY</code></li>
                     </ul>
                   </li>
-                  <li>Check <strong>all 3 environments</strong> (Production, Preview, Development) for each variable</li>
-                  <li>Go to <strong>Deployments</strong> → Click "..." → <strong>Redeploy</strong></li>
-                  <li><strong>CRITICAL:</strong> UNCHECK "Use existing Build Cache"</li>
+                  <li>Check <strong>all environments</strong> (Production, Preview, Development) for each variable</li>
+                  <li>Go to <strong>Deployments</strong> → <strong>Redeploy</strong></li>
+                  <li><strong>CRITICAL:</strong> Clear cache when redeploying</li>
                 </ol>
               </div>
             </div>
           </div>
         `;
       }
-    }, 100);
+    }, 1000);
   }
-  
-  throw new Error(errorMsg);
 }
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+// Create client with actual values or fallbacks
+export const supabase = createClient<Database>(
+  SUPABASE_URL || FALLBACK_URL,
+  SUPABASE_PUBLISHABLE_KEY || FALLBACK_KEY,
+  {
+    auth: {
+      storage: localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+    }
   }
-});
+);
