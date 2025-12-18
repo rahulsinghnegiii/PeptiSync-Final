@@ -24,6 +24,45 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     Please check your Vercel environment variables configuration.`;
   
   console.error('[Supabase Client]', errorMsg);
+  
+  // Show error on page for better debugging
+  if (typeof document !== 'undefined') {
+    setTimeout(() => {
+      const root = document.getElementById('root');
+      if (root) {
+        root.innerHTML = `
+          <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1e1e2e 0%, #2d1b4e 100%); color: #fff; min-height: 100vh;">
+            <div style="max-width: 800px; margin: 0 auto;">
+              <h1 style="color: #ff6b6b; font-size: 32px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 48px;">⚠️</span>
+                Environment Variables Missing
+              </h1>
+              <div style="background: rgba(255, 107, 107, 0.1); border: 2px solid #ff6b6b; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                <pre style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 14px; line-height: 1.6;">${errorMsg}</pre>
+              </div>
+              <div style="background: rgba(139, 92, 246, 0.1); border: 2px solid #8b5cf6; border-radius: 12px; padding: 24px;">
+                <h2 style="color: #8b5cf6; margin-top: 0; margin-bottom: 16px;">How to Fix:</h2>
+                <ol style="line-height: 1.8; padding-left: 24px;">
+                  <li>Go to <strong>Vercel Dashboard → Your Project → Settings → Environment Variables</strong></li>
+                  <li>Make sure these variables are set with the <strong>exact names</strong>:
+                    <ul style="margin-top: 8px; margin-bottom: 8px;">
+                      <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_URL</code></li>
+                      <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_PUBLISHABLE_KEY</code></li>
+                      <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_STRIPE_PUBLISHABLE_KEY</code></li>
+                    </ul>
+                  </li>
+                  <li>Check <strong>all 3 environments</strong> (Production, Preview, Development) for each variable</li>
+                  <li>Go to <strong>Deployments</strong> → Click "..." → <strong>Redeploy</strong></li>
+                  <li><strong>CRITICAL:</strong> UNCHECK "Use existing Build Cache"</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }, 100);
+  }
+  
   throw new Error(errorMsg);
 }
 

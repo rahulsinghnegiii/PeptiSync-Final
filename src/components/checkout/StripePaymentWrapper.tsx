@@ -6,9 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
-);
+// Validate Stripe key exists before loading
+const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+if (!STRIPE_KEY) {
+  console.error('[Stripe] VITE_STRIPE_PUBLISHABLE_KEY is missing from environment variables');
+}
+
+const stripePromise = STRIPE_KEY ? loadStripe(STRIPE_KEY) : null;
 
 interface StripePaymentWrapperProps {
   amount: number;
@@ -25,7 +30,17 @@ export const StripePaymentWrapper = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if Stripe is configured
   useEffect(() => {
+    if (!stripePromise) {
+      setError("Payment system is not configured. Please contact support.");
+      setLoading(false);
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!stripePromise) return; // Skip if Stripe not configured
     const createPaymentIntent = async () => {
       try {
         const { data, error } = await supabase.functions.invoke(
@@ -97,6 +112,26 @@ export const StripePaymentWrapper = ({
       },
     },
   };
+
+  if (!stripePromise) {
+    return (
+      <Card className="glass border-glass-border">
+        <CardContent className="pt-6">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+            <p className="text-destructive mb-4">
+              Payment system is not configured
+            </p>
+            <button
+              onClick={onBack}
+              className="text-sm text-primary hover:underline"
+            >
+              Go back
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Elements stripe={stripePromise} options={options}>
