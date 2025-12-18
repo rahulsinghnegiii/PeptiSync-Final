@@ -20,16 +20,9 @@ export const PricingComparison = () => {
       navigate('/auth?mode=signup');
     } else if (tier.id === 'elite') {
       // Elite plan - always annual
-      // TODO: Navigate to Stripe checkout with elite_annual product ID
-      console.log('Stripe checkout:', tier.productIds.annual);
       navigate('/auth?mode=signup&plan=elite');
     } else {
       // Paid plans with monthly/yearly options
-      const productId = billingPeriod === 'yearly' 
-        ? tier.productIds.yearly 
-        : tier.productIds.monthly;
-      // TODO: Navigate to Stripe checkout with selected product ID
-      console.log('Stripe checkout:', productId);
       navigate(`/auth?mode=signup&plan=${tier.id}&billing=${billingPeriod}`);
     }
   };

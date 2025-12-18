@@ -48,7 +48,6 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
                     <ul style="margin-top: 8px; margin-bottom: 8px;">
                       <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_URL</code></li>
                       <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_PUBLISHABLE_KEY</code></li>
-                      <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_STRIPE_PUBLISHABLE_KEY</code></li>
                     </ul>
                   </li>
                   <li>Check <strong>all 3 environments</strong> (Production, Preview, Development) for each variable</li>

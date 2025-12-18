@@ -58,8 +58,6 @@ export class ErrorBoundary extends Component<Props, State> {
                 <ul className="list-disc list-inside space-y-1 text-sm font-mono">
                   <li>VITE_SUPABASE_URL</li>
                   <li>VITE_SUPABASE_PUBLISHABLE_KEY</li>
-                  <li>VITE_STRIPE_PUBLISHABLE_KEY</li>
-                  <li>VITE_APP_URL</li>
                 </ul>
               </div>
 

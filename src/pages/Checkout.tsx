@@ -10,7 +10,6 @@ import { CheckoutStepper, CheckoutStep } from "@/components/checkout/CheckoutSte
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { ShippingForm } from "@/components/checkout/ShippingForm";
 import { ShippingFormData } from "@/lib/validations/shipping";
-import { StripePaymentWrapper } from "@/components/checkout/StripePaymentWrapper";
 import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -19,7 +18,6 @@ import { sendOrderConfirmationEmail } from "@/lib/email";
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("shipping");
   const [shippingData, setShippingData] = useState<ShippingFormData | null>(null);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
@@ -27,18 +25,14 @@ const Checkout = () => {
   const { user } = useAuth();
   const { cartItems, isLoading, subtotal, shippingCost, total, clearCart } = useCart();
 
-  const handleShippingSubmit = (data: ShippingFormData) => {
+  const handleShippingSubmit = async (data: ShippingFormData) => {
     setShippingData(data);
-    setCurrentStep("payment");
+    // Skip payment step and create order directly
+    await createOrder(data);
   };
 
-  const handlePaymentSuccess = async (intentId: string) => {
-    setPaymentIntentId(intentId);
-    await createOrder(intentId);
-  };
-
-  const createOrder = async (intentId: string) => {
-    if (!user || !shippingData) {
+  const createOrder = async (shipping: ShippingFormData) => {
+    if (!user) {
       toast.error("Missing required information");
       return;
     }
@@ -82,9 +76,9 @@ const Checkout = () => {
         .insert({
           user_id: user.id,
           total_amount: total,
-          shipping_address: shippingData,
-          status: "processing",
-          payment_intent_id: intentId,
+          shipping_address: shipping,
+          status: "pending",
+          payment_intent_id: null,
         })
         .select()
         .single();
@@ -156,11 +150,11 @@ const Checkout = () => {
             shipping: shippingCost,
             total,
             shippingAddress: {
-              fullName: shippingData.fullName,
-              address: shippingData.address,
-              city: shippingData.city,
-              state: shippingData.state,
-              zipCode: shippingData.zipCode,
+              fullName: shipping.fullName,
+              address: shipping.address,
+              city: shipping.city,
+              state: shipping.state,
+              zipCode: shipping.zipCode,
             },
           });
         }
@@ -246,20 +240,6 @@ const Checkout = () => {
                 transition={{ duration: 0.5 }}
               >
                 <ShippingForm onSubmit={handleShippingSubmit} />
-              </motion.div>
-            )}
-
-            {currentStep === "payment" && (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <StripePaymentWrapper
-                  amount={total}
-                  onSuccess={handlePaymentSuccess}
-                  onBack={() => setCurrentStep("shipping")}
-                />
               </motion.div>
             )}
 

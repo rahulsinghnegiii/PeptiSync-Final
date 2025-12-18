@@ -51,7 +51,7 @@ vercel --prod --force
 4. **UNCHECK** "Use existing Build Cache" ⚠️
 5. Click **"Redeploy"**
 
-### Step 4: Test
+### Step 3: Test
 
 1. Wait 3-5 minutes for build to complete
 2. Open your production URL in **incognito/private window**
