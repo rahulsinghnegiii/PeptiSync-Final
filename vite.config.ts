@@ -48,39 +48,13 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 2048, // 2kb - reduced from 4kb
     rollupOptions: {
       output: {
-        // Simplified code splitting to ensure proper module loading order
-        manualChunks: (id) => {
+        // Conservative chunking strategy - only split out React to ensure it loads first
+        manualChunks(id) {
+          // Only split React into its own chunk, everything else stays together
           if (id.includes('node_modules')) {
-            // Keep React and React-DOM together in one chunk to prevent loading issues
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'react';
             }
-            // Group all Radix UI components together
-            if (id.includes('@radix-ui')) {
-              return 'radix-ui';
-            }
-            // Supabase
-            if (id.includes('@supabase')) {
-              return 'supabase';
-            }
-            // React Query
-            if (id.includes('@tanstack/react-query')) {
-              return 'react-query';
-            }
-            // Form libraries
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
-              return 'forms';
-            }
-            // Firebase
-            if (id.includes('firebase')) {
-              return 'firebase';
-            }
-            // UI utilities (framer-motion, lucide-react, etc.)
-            if (id.includes('framer-motion') || id.includes('lucide-react')) {
-              return 'ui-utils';
-            }
-            // All other vendor code
-            return 'vendor';
           }
         },
         // Optimize chunk naming for better caching
