@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
+    dedupe: ['react', 'react-dom'], // Ensure only one instance of React
   },
   build: {
     // Ensure production mode with aggressive optimization
@@ -47,15 +48,14 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 2048, // 2kb - reduced from 4kb
     rollupOptions: {
       output: {
-        // More aggressive code splitting to reduce memory usage
+        // Simplified code splitting to ensure proper module loading order
         manualChunks: (id) => {
-          // Split node_modules into smaller chunks
           if (id.includes('node_modules')) {
-            // React core
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'react-core';
+            // Keep React and React-DOM together in one chunk to prevent loading issues
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
             }
-            // Radix UI - split into smaller chunks
+            // Group all Radix UI components together
             if (id.includes('@radix-ui')) {
               return 'radix-ui';
             }
@@ -71,19 +71,15 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
               return 'forms';
             }
-            // Stripe
-            if (id.includes('@stripe')) {
-              return 'stripe';
-            }
             // Firebase
             if (id.includes('firebase')) {
               return 'firebase';
             }
-            // UI utilities
+            // UI utilities (framer-motion, lucide-react, etc.)
             if (id.includes('framer-motion') || id.includes('lucide-react')) {
               return 'ui-utils';
             }
-            // Other vendor code
+            // All other vendor code
             return 'vendor';
           }
         },
@@ -108,8 +104,11 @@ export default defineConfig(({ mode }) => ({
           return `assets/[name]-[hash][extname]`;
         },
       },
-      // Optimize dependencies to reduce bundle size
-      external: [],
+    },
+    // Optimize dependencies
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
     },
   },
 }));
