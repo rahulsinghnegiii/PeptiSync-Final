@@ -33,8 +33,8 @@ docs/
 # Scripts
 scripts/
 
-# Supabase (backend is separate)
-supabase/
+# Supabase backend folder (NOT src/integrations/supabase which is needed!)
+/supabase/
 
 # Test files
 *.test.ts
