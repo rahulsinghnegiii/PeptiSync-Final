@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Download, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { AppStoreButtons } from "@/components/AppStoreButtons";
 import heroBg from "@/assets/hero-bg.jpg";
 import appPreview from "@/assets/app-preview.jpg";
 
@@ -92,16 +94,32 @@ const Hero = () => {
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="flex flex-col gap-4 justify-center lg:justify-start"
             >
-              <Button variant="hero" size="xl" className="group" aria-label="Download PeptiSync app">
-                <Download className="w-5 h-5 mr-2" aria-hidden="true" />
-                Download App
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-              </Button>
-              <Button variant="glass" size="xl" aria-label="Upgrade your membership">
-                Upgrade Membership
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/auth">
+                  <Button variant="hero" size="xl" className="group w-full sm:w-auto" aria-label="Get started with PeptiSync">
+                    Get Started
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                  </Button>
+                </Link>
+                <Link to="/download">
+                  <Button variant="glass" size="xl" className="w-full sm:w-auto" aria-label="Download PeptiSync app">
+                    <Download className="w-5 h-5 mr-2" aria-hidden="true" />
+                    Download App
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* App Store Buttons */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1, duration: 0.8 }}
+                className="flex justify-center lg:justify-start"
+              >
+                <AppStoreButtons />
+              </motion.div>
             </motion.div>
 
             {/* Stats */}

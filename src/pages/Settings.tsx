@@ -1,36 +1,27 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Lock, MapPin, Bell } from "lucide-react";
+import { ArrowLeft, User, Lock, Bell } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileTab from "@/components/settings/ProfileTab";
 import SecurityTab from "@/components/settings/SecurityTab";
-import AddressesTab from "@/components/settings/AddressesTab";
 import PreferencesTab from "@/components/settings/PreferencesTab";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { COLLECTIONS } from "@/lib/firestoreHelpers";
+import type { UserProfile } from "@/types/firestore";
 
 export interface Profile {
-  id: string;
-  user_id: string;
-  full_name: string | null;
-  email: string | null;
-  avatar_url: string | null;
-  phone_number: string | null;
-  membership_tier: string;
-  shipping_address: ShippingAddress | null;
-  created_at: string;
-}
-
-export interface ShippingAddress {
+  uid: string;
+  email: string;
   fullName: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phoneNumber: string;
+  avatarUrl?: string;
+  phoneNumber?: string;
+  membershipTier: string;
+  createdAt: any;
 }
 
 const Settings = () => {
@@ -50,16 +41,20 @@ const Settings = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const userDocRef = doc(db, COLLECTIONS.USERS, user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-      if (error) throw error;
-
-      if (data) {
-        setProfile(data);
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as UserProfile;
+        setProfile({
+          uid: userData.uid,
+          email: userData.email,
+          fullName: userData.fullName,
+          avatarUrl: userData.avatarUrl,
+          phoneNumber: userData.phoneNumber,
+          membershipTier: userData.membershipTier,
+          createdAt: userData.createdAt,
+        });
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -116,7 +111,7 @@ const Settings = () => {
           transition={{ duration: 0.5 }}
         >
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Profile
@@ -124,10 +119,6 @@ const Settings = () => {
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 Security
-              </TabsTrigger>
-              <TabsTrigger value="addresses" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Addresses
               </TabsTrigger>
               <TabsTrigger value="preferences" className="flex items-center gap-2">
                 <Bell className="w-4 h-4" />
@@ -141,10 +132,6 @@ const Settings = () => {
 
             <TabsContent value="security">
               <SecurityTab />
-            </TabsContent>
-
-            <TabsContent value="addresses">
-              <AddressesTab profile={profile} onProfileUpdate={loadProfile} />
             </TabsContent>
 
             <TabsContent value="preferences">

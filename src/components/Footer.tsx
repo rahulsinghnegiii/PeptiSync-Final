@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { Facebook, Twitter, Instagram, Github, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+import { COMPANY_INFO, SOCIAL_LINKS } from "@/lib/constants";
+import { FooterDisclaimer } from "@/components/MedicalDisclaimer";
 
 const Footer = () => {
   const footerSections = [
@@ -7,46 +10,43 @@ const Footer = () => {
       title: "Product",
       links: [
         { name: "Features", href: "/features" },
-        { name: "Pricing", href: "/#pricing" },
+        { name: "Download", href: "/download" },
+        { name: "Vendor Pricing", href: "/vendor-pricing" },
         { name: "Store", href: "/store" },
-        { name: "Download", href: "/auth" },
       ]
     },
     {
       title: "Support",
       links: [
         { name: "Help Center", href: "/faq" },
-        { name: "Contact Us", href: "#" },
-        { name: "Status", href: "#" },
-        { name: "Community", href: "#" },
+        { name: "Contact Us", href: "/contact" },
+        { name: "Documentation", href: "/faq" },
       ]
     },
     {
       title: "Company",
       links: [
-        { name: "About", href: "#" },
-        { name: "Blog", href: "#" },
-        { name: "Careers", href: "#" },
-        { name: "Press", href: "#" },
+        { name: "About", href: "/about" },
+        { name: "Blog", href: "/blog" },
       ]
     },
     {
       title: "Legal",
       links: [
-        { name: "Privacy Policy", href: "/legal" },
-        { name: "Terms of Service", href: "/legal" },
-        { name: "Cookie Policy", href: "/legal" },
-        { name: "Disclaimer", href: "/legal" },
+        { name: "Privacy Policy", href: "/legal/privacy" },
+        { name: "Terms of Service", href: "/legal/terms" },
+        { name: "Cookie Policy", href: "/legal/cookies" },
+        { name: "Disclaimer", href: "/legal/disclaimer" },
       ]
     }
   ];
 
   const socialLinks = [
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Github, href: "#", label: "GitHub" },
-    { icon: Mail, href: "#", label: "Email" },
+    { icon: Twitter, href: SOCIAL_LINKS.twitter, label: "Twitter" },
+    { icon: Facebook, href: SOCIAL_LINKS.facebook, label: "Facebook" },
+    { icon: Instagram, href: SOCIAL_LINKS.instagram, label: "Instagram" },
+    { icon: Github, href: SOCIAL_LINKS.github, label: "GitHub" },
+    { icon: Mail, href: `mailto:${COMPANY_INFO.supportEmail}`, label: "Email" },
   ];
 
   const containerVariants = {
@@ -133,13 +133,14 @@ const Footer = () => {
                 <ul className="space-y-3">
                   {section.links.map((link) => (
                     <li key={link.name}>
-                      <motion.a
-                        href={link.href}
-                        whileHover={{ x: 4 }}
-                        className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
-                      >
-                        {link.name}
-                      </motion.a>
+                      <Link to={link.href}>
+                        <motion.span
+                          whileHover={{ x: 4 }}
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300 inline-block"
+                        >
+                          {link.name}
+                        </motion.span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -184,31 +185,38 @@ const Footer = () => {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.8, duration: 0.8 }}
-            className="mt-12 pt-8 border-t border-glass-border/30 flex flex-col md:flex-row justify-between items-center"
+            className="mt-12 pt-8 border-t border-glass-border/30"
           >
-            <p className="text-sm text-muted-foreground">
-              © 2024 PeptiSync. All rights reserved.
-            </p>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} {COMPANY_INFO.legalName}. All rights reserved.
+              </p>
+              
+              <div className="mt-4 md:mt-0 flex space-x-6">
+                <Link 
+                  to="/legal/privacy" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+                >
+                  Privacy
+                </Link>
+                <Link 
+                  to="/legal/terms" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+                >
+                  Terms
+                </Link>
+                <Link 
+                  to="/legal/cookies" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+                >
+                  Cookies
+                </Link>
+              </div>
+            </div>
             
-            <div className="mt-4 md:mt-0 flex space-x-6">
-              <a 
-                href="/privacy-policy" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
-              >
-                Privacy
-              </a>
-              <a 
-                href="/legal" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
-              >
-                Terms
-              </a>
-              <a 
-                href="/legal" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
-              >
-                Cookies
-              </a>
+            {/* Medical Disclaimer */}
+            <div className="mt-4">
+              <FooterDisclaimer />
             </div>
           </motion.div>
         </div>

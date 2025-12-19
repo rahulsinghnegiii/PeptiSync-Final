@@ -1,0 +1,281 @@
+import { useState, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  limit as limitQuery
+} from "firebase/firestore";
+import type { VendorPriceSubmission } from "@/types/vendor";
+import { toast } from "sonner";
+
+// Helper function to convert Firebase data to VendorPriceSubmission
+const convertFirebaseData = (doc: any): VendorPriceSubmission => {
+  const rawData = doc.data();
+  return {
+    id: doc.id,
+    peptideId: rawData.peptide_id || null,
+    peptideName: rawData.peptide_name || "",
+    priceUsd: rawData.price_usd || 0,
+    shippingOrigin: rawData.shipping_origin || "",
+    vendorName: rawData.vendor_name || "",
+    vendorUrl: rawData.vendor_url || "",
+    discountCode: rawData.discount_code || "",
+    screenshotUrl: rawData.screenshot_url || "",
+    submittedBy: rawData.submitted_by || "",
+    submittedAt: rawData.submitted_at,
+    approvalStatus: rawData.approval_status || "pending",
+    approvedBy: rawData.approved_by || "",
+    reviewedAt: rawData.reviewed_at,
+    rejectionReason: rawData.rejection_reason || "",
+    autoApproved: rawData.auto_approved || false,
+    verifiedVendor: rawData.verified_vendor || false,
+    displayOnPublic: rawData.display_on_public || false,
+  };
+};
+
+// Hook to fetch approved vendor prices for public display
+export function useApprovedVendorPrices(limit?: number) {
+  const [submissions, setSubmissions] = useState<VendorPriceSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        setLoading(true);
+        const submissionsRef = collection(db, "vendor_pricing_submissions");
+        
+        let q = query(
+          submissionsRef,
+          where("approval_status", "==", "approved"),
+          orderBy("price_usd", "asc")
+        );
+
+        if (limit) {
+          q = query(q, limitQuery(limit));
+        }
+
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(convertFirebaseData);
+
+        setSubmissions(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching approved vendor prices:", err);
+        setError("Failed to load vendor prices");
+        setSubmissions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubmissions();
+  }, [limit]);
+
+  return { submissions, loading, error };
+}
+
+// Hook to fetch all submissions (for admin)
+export function useAllVendorSubmissions(status?: 'pending' | 'approved' | 'rejected') {
+  const [submissions, setSubmissions] = useState<VendorPriceSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSubmissions = async () => {
+    try {
+      setLoading(true);
+      const submissionsRef = collection(db, "vendor_pricing_submissions");
+      
+      let q = query(submissionsRef, orderBy("submitted_at", "desc"));
+
+      if (status) {
+        q = query(
+          submissionsRef,
+          where("approval_status", "==", status),
+          orderBy("submitted_at", "desc")
+        );
+      }
+
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(convertFirebaseData);
+
+      setSubmissions(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching vendor submissions:", err);
+      setError("Failed to load submissions");
+      setSubmissions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [status]);
+
+  return { submissions, loading, error, refetch: fetchSubmissions };
+}
+
+// Hook to submit a new vendor price
+export function useSubmitVendorPrice() {
+  const [submitting, setSubmitting] = useState(false);
+
+  const submitPrice = async (data: {
+    peptideName: string;
+    priceUsd: number;
+    shippingOrigin: string;
+    vendorName?: string;
+    vendorUrl?: string;
+    discountCode?: string;
+    screenshotUrl?: string;
+  }) => {
+    setSubmitting(true);
+    try {
+      const submissionsRef = collection(db, "vendor_pricing_submissions");
+      await addDoc(submissionsRef, {
+        peptide_name: data.peptideName,
+        price_usd: data.priceUsd,
+        shipping_origin: data.shippingOrigin,
+        vendor_name: data.vendorName || "",
+        vendor_url: data.vendorUrl || "",
+        discount_code: data.discountCode || "",
+        screenshot_url: data.screenshotUrl || "",
+        submitted_at: serverTimestamp(),
+        approval_status: "pending",
+        auto_approved: false,
+        verified_vendor: false,
+        display_on_public: false,
+      });
+
+      toast.success("Vendor price submitted successfully! It will be reviewed by our team.");
+      return true;
+    } catch (error) {
+      console.error("Error submitting vendor price:", error);
+      toast.error("Failed to submit vendor price. Please try again.");
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return { submitPrice, submitting };
+}
+
+// Hook to approve a submission (admin only)
+export function useApproveSubmission() {
+  const [approving, setApproving] = useState(false);
+
+  const approve = async (submissionId: string, userId: string) => {
+    setApproving(true);
+    try {
+      const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      await updateDoc(submissionRef, {
+        approval_status: "approved",
+        approved_by: userId,
+        reviewed_at: serverTimestamp(),
+        display_on_public: true,
+      });
+
+      toast.success("Submission approved successfully!");
+      return true;
+    } catch (error) {
+      console.error("Error approving submission:", error);
+      toast.error("Failed to approve submission.");
+      return false;
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  return { approve, approving };
+}
+
+// Hook to reject a submission (admin only)
+export function useRejectSubmission() {
+  const [rejecting, setRejecting] = useState(false);
+
+  const reject = async (submissionId: string, reason: string, userId: string) => {
+    setRejecting(true);
+    try {
+      const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      await updateDoc(submissionRef, {
+        approval_status: "rejected",
+        rejection_reason: reason,
+        approved_by: userId,
+        reviewed_at: serverTimestamp(),
+        display_on_public: false,
+      });
+
+      toast.success("Submission rejected.");
+      return true;
+    } catch (error) {
+      console.error("Error rejecting submission:", error);
+      toast.error("Failed to reject submission.");
+      return false;
+    } finally {
+      setRejecting(false);
+    }
+  };
+
+  return { reject, rejecting };
+}
+
+// Hook to delete a submission (admin only)
+export function useDeleteSubmission() {
+  const [deleting, setDeleting] = useState(false);
+
+  const deleteSubmission = async (submissionId: string) => {
+    setDeleting(true);
+    try {
+      const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      await deleteDoc(submissionRef);
+
+      toast.success("Submission deleted successfully!");
+      return true;
+    } catch (error) {
+      console.error("Error deleting submission:", error);
+      toast.error("Failed to delete submission.");
+      return false;
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return { deleteSubmission, deleting };
+}
+
+// Hook to toggle vendor verification (admin only)
+export function useToggleVendorVerification() {
+  const [toggling, setToggling] = useState(false);
+
+  const toggleVerification = async (submissionId: string, currentStatus: boolean) => {
+    setToggling(true);
+    try {
+      const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      await updateDoc(submissionRef, {
+        verified_vendor: !currentStatus,
+      });
+
+      toast.success(`Vendor ${!currentStatus ? 'verified' : 'unverified'} successfully!`);
+      return true;
+    } catch (error) {
+      console.error("Error toggling vendor verification:", error);
+      toast.error("Failed to update vendor verification.");
+      return false;
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  return { toggleVerification, toggling };
+}
+

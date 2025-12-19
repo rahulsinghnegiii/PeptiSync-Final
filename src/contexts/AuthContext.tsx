@@ -1,14 +1,25 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  User,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  updateProfile,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
+import { doc, setDoc, getDoc, Timestamp } from "firebase/firestore";
+import { COLLECTIONS } from "@/lib/firestoreHelpers";
 import { sendWelcomeEmail } from "@/lib/email";
 import { SessionTimeoutManager } from "@/lib/sessionTimeout";
 import { initializeCsrfToken, clearCsrfToken } from "@/lib/csrfProtection";
 import { toast } from "sonner";
+import type { UserProfile } from "@/types/firestore";
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -16,19 +27,23 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: any }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create context with a default value to prevent undefined errors
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  signUp: async () => ({ error: new Error("Auth not initialized") }),
+  signIn: async () => ({ error: new Error("Auth not initialized") }),
+  signOut: async () => {},
+  resetPassword: async () => ({ error: new Error("Auth not initialized") }),
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
   return context;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionManager] = useState(() => new SessionTimeoutManager({
     onWarning: () => {
@@ -43,133 +58,138 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }));
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        // Start session timeout when user signs in
-        if (event === 'SIGNED_IN' && session) {
-          sessionManager.start();
-          initializeCsrfToken();
-        }
-
-        // Stop session timeout when user signs out
-        if (event === 'SIGNED_OUT') {
-          sessionManager.stop();
-          clearCsrfToken();
-        }
-
-        // Handle email verification
-        if (event === 'USER_UPDATED' && session?.user) {
-          if (session.user.email_confirmed_at) {
-            toast.success("Email verified successfully!");
-          }
-        }
-      }
-    );
-
-    // THEN check for existing session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Set up Firebase auth state listener
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
 
-      // Start session timeout if user is already logged in
-      if (session) {
+      // Start session timeout when user signs in
+      if (firebaseUser) {
         sessionManager.start();
         initializeCsrfToken();
-      }
-    };
 
-    getInitialSession();
+        // Check if user profile exists, create if not
+        const userDocRef = doc(db, COLLECTIONS.USERS, firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          // Create user profile in Firestore
+          const userProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            fullName: firebaseUser.displayName || '',
+            membershipTier: 'free',
+          };
+          
+          await setDoc(userDocRef, {
+            ...userProfile,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+          });
+        }
+      } else {
+        // Stop session timeout when user signs out
+        sessionManager.stop();
+        clearCsrfToken();
+      }
+    });
 
     return () => {
-      subscription.unsubscribe();
+      unsubscribe();
       sessionManager.stop();
     };
   }, [sessionManager]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    const { error, data } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-    
-    // Send welcome email after successful signup
-    if (!error && data.user) {
+    try {
+      // Create user with Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Update user profile with display name
+      await updateProfile(user, {
+        displayName: fullName,
+      });
+
+      // Create user profile in Firestore
+      const userProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> = {
+        uid: user.uid,
+        email: email,
+        fullName: fullName,
+        membershipTier: 'free',
+      };
+
+      await setDoc(doc(db, COLLECTIONS.USERS, user.uid), {
+        ...userProfile,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
+
+      // Send email verification
+      await sendEmailVerification(user);
+
+      // Send welcome email
       try {
         await sendWelcomeEmail(email, {
           userName: fullName,
         });
-        
-        // Notify user to check email for verification
-        if (!data.session) {
-          toast.info("Please check your email to verify your account before signing in.", {
-            duration: 8000,
-          });
-        }
       } catch (emailError) {
         console.error("Failed to send welcome email:", emailError);
         // Don't fail the signup if email fails
       }
+
+      toast.info("Please check your email to verify your account.", {
+        duration: 8000,
+      });
+
+      return { error: null };
+    } catch (error: any) {
+      console.error("Sign up error:", error);
+      return { error };
     }
-    
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    return { error };
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return { error: null };
+    } catch (error: any) {
+      console.error("Sign in error:", error);
+      return { error };
+    }
   };
 
   const signOut = async () => {
     sessionManager.stop();
     
     // Clear React Query cache on logout to prevent memory buildup
-    // This is important for preventing memory leaks when users log out/in frequently
     try {
-      // Import queryClient from App.tsx
       const { queryClient } = await import("@/App");
       if (queryClient) {
-        // Clear all queries from cache
         queryClient.getQueryCache().clear();
-        // Also clear mutation cache
         queryClient.getMutationCache().clear();
       }
     } catch (error) {
-      // Silently fail - cache will be cleared on next page load
       console.warn("Failed to clear query cache on logout:", error);
     }
     
-    await supabase.auth.signOut();
+    await firebaseSignOut(auth);
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/update-password`,
-    });
-    return { error };
+    try {
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/auth`,
+      });
+      return { error: null };
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      return { error };
+    }
   };
 
   const value = {
     user,
-    session,
     loading,
     signUp,
     signIn,

@@ -8,29 +8,41 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Lock, Check, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { auth } from "@/lib/firebase";
+import { updatePassword, verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { validatePasswordStrength, getPasswordStrengthLabel, getPasswordStrengthColor } from "@/lib/passwordValidation";
 
 const UpdatePassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const passwordStrength = validatePasswordStrength(password);
+  const oobCode = searchParams.get('oobCode');
 
   useEffect(() => {
-    // Check if user has a valid session from password reset
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+    // Check if we have a valid reset code
+    const checkResetCode = async () => {
+      if (!oobCode) {
+        toast.error("Invalid or missing reset code");
+        navigate("/auth");
+        return;
+      }
+
+      try {
+        // Verify the password reset code is valid
+        await verifyPasswordResetCode(auth, oobCode);
+      } catch (error) {
+        console.error("Invalid reset code:", error);
         toast.error("Invalid or expired reset link");
         navigate("/auth");
       }
     };
-    checkSession();
-  }, [navigate]);
+    checkResetCode();
+  }, [navigate, oobCode]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,22 +57,21 @@ const UpdatePassword = () => {
       return;
     }
 
+    if (!oobCode) {
+      toast.error("Invalid reset code");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (error) {
-        toast.error(error.message || "Failed to update password");
-      } else {
-        toast.success("Password updated successfully!");
-        navigate("/dashboard");
-      }
-    } catch (error) {
+      // Confirm the password reset with the new password
+      await confirmPasswordReset(auth, oobCode, password);
+      toast.success("Password updated successfully!");
+      navigate("/auth");
+    } catch (error: any) {
       console.error("Update password error:", error);
-      toast.error("An unexpected error occurred");
+      toast.error(error.message || "Failed to update password");
     } finally {
       setIsLoading(false);
     }

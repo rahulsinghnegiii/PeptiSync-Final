@@ -46,13 +46,22 @@ const Legal = lazy(() => import("./pages/Legal"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
-const Checkout = lazy(() => import("./pages/Checkout"));
 const Admin = lazy(() => import("./pages/Admin"));
-const OrderTracking = lazy(() => import("./pages/OrderTracking"));
-const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+// New pages
+const About = lazy(() => import("./pages/About"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Download = lazy(() => import("./pages/Download"));
+const VendorPricing = lazy(() => import("./pages/VendorPricing"));
+// Legal pages
+const TermsOfUse = lazy(() => import("./pages/legal/TermsOfUse"));
+const LegalPrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const Disclaimer = lazy(() => import("./pages/legal/Disclaimer"));
+const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
 
 // Store cleanup interval ID for proper cleanup
 let cacheCleanupInterval: NodeJS.Timeout | null = null;
@@ -137,6 +146,18 @@ const App = () => {
                   <Route path="/store" element={<Store />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/legal" element={<Legal />} />
+                  {/* New public pages */}
+                  <Route path="/about" element={<About />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/download" element={<Download />} />
+                  <Route path="/vendor-pricing" element={<VendorPricing />} />
+                  {/* Legal pages */}
+                  <Route path="/legal/terms" element={<TermsOfUse />} />
+                  <Route path="/legal/privacy" element={<LegalPrivacyPolicy />} />
+                  <Route path="/legal/disclaimer" element={<Disclaimer />} />
+                  <Route path="/legal/cookies" element={<CookiePolicy />} />
                   {/* Auth routes - Guest only */}
                   <Route path="/auth" element={<GuestOnly><Auth /></GuestOnly>} />
                   <Route path="/reset-password" element={<GuestOnly><ResetPassword /></GuestOnly>} />
@@ -144,12 +165,9 @@ const App = () => {
                   {/* Protected routes - Require authentication */}
                   <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                  <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-                  <Route path="/orders" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
                   {/* Admin only routes */}
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-                  {/* Public routes */}
-                  <Route path="/store/:productId" element={<ProductDetail />} />
+                  {/* Legacy routes */}
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

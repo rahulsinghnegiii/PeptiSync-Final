@@ -5,8 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Bell, Mail, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { COLLECTIONS } from "@/lib/firestoreHelpers";
 
 const PreferencesTab = () => {
   const { user } = useAuth();
@@ -34,20 +36,18 @@ const PreferencesTab = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("email_preferences")
-        .eq("id", user.id)
-        .single();
+      const userDocRef = doc(db, COLLECTIONS.USERS, user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-      if (error) throw error;
-
-      if (data?.email_preferences) {
-        setEmailNotifications({
-          orderUpdates: data.email_preferences.order_updates ?? true,
-          promotions: data.email_preferences.marketing ?? true,
-          newsletter: data.email_preferences.marketing ?? false,
-        });
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData?.emailPreferences) {
+          setEmailNotifications({
+            orderUpdates: userData.emailPreferences.orderUpdates ?? true,
+            promotions: userData.emailPreferences.marketing ?? true,
+            newsletter: userData.emailPreferences.marketing ?? false,
+          });
+        }
       }
     } catch (error) {
       console.error("Error loading email preferences:", error);
@@ -74,18 +74,14 @@ const PreferencesTab = () => {
     setEmailNotifications(newPreferences);
 
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          email_preferences: {
-            order_updates: newPreferences.orderUpdates,
-            shipping_notifications: newPreferences.orderUpdates,
-            marketing: newPreferences.promotions || newPreferences.newsletter,
-          },
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
+      const userDocRef = doc(db, COLLECTIONS.USERS, user.uid);
+      await updateDoc(userDocRef, {
+        emailPreferences: {
+          orderUpdates: newPreferences.orderUpdates,
+          shippingNotifications: newPreferences.orderUpdates,
+          marketing: newPreferences.promotions || newPreferences.newsletter,
+        },
+      });
 
       toast.success("Email preferences updated");
     } catch (error) {

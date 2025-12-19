@@ -19,53 +19,14 @@ const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 // Validate environment variables
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  const errorMsg = `Missing Supabase environment variables:
+  const errorMsg = `Missing Supabase environment variables (using fallback - this is expected during Firebase migration):
     VITE_SUPABASE_URL: ${SUPABASE_URL ? 'Set' : 'MISSING'}
-    VITE_SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY ? 'Set' : 'MISSING'}
-    
-    Available env vars: ${Object.keys(import.meta.env).join(', ')}
-    
-    Please check your deployment platform environment variables configuration.`;
+    VITE_SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY ? 'Set' : 'MISSING'}`;
   
-  console.error('[Supabase Client]', errorMsg);
-  console.error('[Supabase Client] Using fallback values - app will not function properly!');
+  console.warn('[Supabase Client]', errorMsg);
+  console.warn('[Supabase Client] Using fallback values - Supabase features will not work (expected during Firebase migration)');
   
-  // Show error on page after React loads
-  if (typeof document !== 'undefined') {
-    setTimeout(() => {
-      const root = document.getElementById('root');
-      if (root && root.children.length === 0) {
-        root.innerHTML = `
-          <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1e1e2e 0%, #2d1b4e 100%); color: #fff; min-height: 100vh;">
-            <div style="max-width: 800px; margin: 0 auto;">
-              <h1 style="color: #ff6b6b; font-size: 32px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 48px;">⚠️</span>
-                Environment Variables Missing
-              </h1>
-              <div style="background: rgba(255, 107, 107, 0.1); border: 2px solid #ff6b6b; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-                <pre style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 14px; line-height: 1.6;">${errorMsg}</pre>
-              </div>
-              <div style="background: rgba(139, 92, 246, 0.1); border: 2px solid #8b5cf6; border-radius: 12px; padding: 24px;">
-                <h2 style="color: #8b5cf6; margin-top: 0; margin-bottom: 16px;">How to Fix:</h2>
-                <ol style="line-height: 1.8; padding-left: 24px;">
-                  <li>Go to <strong>Vercel/Netlify Dashboard → Your Project → Settings → Environment Variables</strong></li>
-                  <li>Add these variables with the <strong>exact names</strong>:
-                    <ul style="margin-top: 8px; margin-bottom: 8px;">
-                      <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_URL</code></li>
-                      <li><code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">VITE_SUPABASE_PUBLISHABLE_KEY</code></li>
-                    </ul>
-                  </li>
-                  <li>Check <strong>all environments</strong> (Production, Preview, Development) for each variable</li>
-                  <li>Go to <strong>Deployments</strong> → <strong>Redeploy</strong></li>
-                  <li><strong>CRITICAL:</strong> Clear cache when redeploying</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    }, 1000);
-  }
+  // Don't show error page since we're migrating to Firebase
 }
 
 // Import the supabase client like this:

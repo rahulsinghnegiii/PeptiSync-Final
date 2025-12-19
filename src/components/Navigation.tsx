@@ -4,7 +4,6 @@ import { Menu, X, User } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { CartDrawer } from "./CartDrawer";
 import { ThemeToggle } from "./ThemeToggle";
 
 const Navigation = () => {
@@ -21,9 +20,10 @@ const Navigation = () => {
 
   const navItems = [
     { name: "Features", href: "/features" },
-    { name: "Pricing", href: "/#pricing" },
-    { name: "Store", href: "/store" },
-    { name: "FAQ", href: "/faq" },
+    { name: "About", href: "/about" },
+    { name: "Blog", href: "/blog" },
+    { name: "Vendor Pricing", href: "/vendor-pricing" },
+    { name: "Download", href: "/download" },
   ];
 
   return (
@@ -69,7 +69,6 @@ const Navigation = () => {
           <div className="hidden md:flex items-center space-x-2">
             {user ? (
               <>
-                <CartDrawer />
                 <ThemeToggle />
                 <Link to="/dashboard">
                   <Button variant="ghost" size="sm">
@@ -83,7 +82,6 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <CartDrawer />
                 <ThemeToggle />
                 <Link to="/auth">
                   <Button variant="ghost" size="sm">Sign In</Button>
@@ -137,8 +135,7 @@ const Navigation = () => {
             <div className="flex flex-col space-y-2 pt-4">
               {user ? (
                 <>
-                  <div className="pb-2 flex items-center gap-2">
-                    <CartDrawer />
+                  <div className="pb-2">
                     <ThemeToggle />
                   </div>
                   <Link to="/dashboard" onClick={() => setIsOpen(false)}>
@@ -153,8 +150,7 @@ const Navigation = () => {
                 </>
               ) : (
                 <>
-                  <div className="pb-2 flex items-center gap-2">
-                    <CartDrawer />
+                  <div className="pb-2">
                     <ThemeToggle />
                   </div>
                   <Link to="/auth" onClick={() => setIsOpen(false)}>

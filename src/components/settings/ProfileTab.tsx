@@ -10,7 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { storage, db, auth } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, updateDoc } from "firebase/firestore";
+import { COLLECTIONS } from "@/lib/firestoreHelpers";
 import { toast } from "sonner";
 import { Profile } from "@/pages/Settings";
 
@@ -29,7 +32,7 @@ interface ProfileTabProps {
 
 const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
   const [uploading, setUploading] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatar_url);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
 
   const {
     register,
@@ -38,9 +41,9 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      full_name: profile.full_name || "",
+      full_name: profile.fullName || "",
       email: profile.email || "",
-      phone_number: profile.phone_number || "",
+      phone_number: profile.phoneNumber || "",
     },
   });
 
@@ -99,33 +102,28 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
 
       // Generate unique filename
       const fileExt = file.name.split(".").pop();
-      const fileName = `${profile.user_id}-${Date.now()}.${fileExt}`;
+      const fileName = `${profile.uid}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, resizedBlob, {
-          cacheControl: "3600",
-          upsert: true,
-        });
+      // Upload to Firebase Storage
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, resizedBlob, {
+        contentType: file.type,
+        cacheControl: "public, max-age=3600",
+      });
 
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
 
       // Update profile with new avatar URL
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: publicUrl })
-        .eq("user_id", profile.user_id);
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
 
-      if (updateError) throw updateError;
+      await updateDoc(doc(db, COLLECTIONS.USERS, currentUser.uid), {
+        avatarUrl: downloadURL,
+      });
 
-      setAvatarPreview(publicUrl);
+      setAvatarPreview(downloadURL);
       toast.success("Avatar updated successfully");
       onProfileUpdate();
     } catch (error) {
@@ -138,15 +136,13 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: data.full_name,
-          phone_number: data.phone_number || null,
-        })
-        .eq("user_id", profile.user_id);
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("User not authenticated");
 
-      if (error) throw error;
+      await updateDoc(doc(db, COLLECTIONS.USERS, currentUser.uid), {
+        fullName: data.full_name,
+        phoneNumber: data.phone_number || null,
+      });
 
       toast.success("Profile updated successfully");
       onProfileUpdate();
@@ -175,7 +171,7 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
             <Avatar className="w-24 h-24">
               <AvatarImage src={avatarPreview || ""} />
               <AvatarFallback className="bg-primary/10 text-primary text-2xl">
-                {profile.full_name?.[0] || profile.email?.[0]?.toUpperCase() || "U"}
+                {profile.fullName?.[0] || profile.email?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
@@ -225,7 +221,7 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
               <p className="text-sm text-muted-foreground">Your current membership level</p>
             </div>
             <Badge variant="secondary" className="capitalize text-base px-4 py-2">
-              {profile.membership_tier}
+              {profile.membershipTier}
             </Badge>
           </div>
 

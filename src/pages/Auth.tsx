@@ -11,7 +11,9 @@ import { toast } from "sonner";
 import { Mail, Lock, User, Check, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { auth, db } from "@/lib/firebase";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { COLLECTIONS } from "@/lib/firestoreHelpers";
 import { validatePasswordStrength, getPasswordStrengthLabel, getPasswordStrengthColor } from "@/lib/passwordValidation";
 
 const Auth = () => {
@@ -36,7 +38,20 @@ const Auth = () => {
       const { error } = await signIn(loginData.email, loginData.password);
       
       if (error) {
-        toast.error(error.message || "Failed to sign in");
+        // Provide user-friendly error messages
+        let errorMessage = "Failed to sign in";
+        if (error.code === "auth/invalid-credential" || error.code === "auth/user-not-found") {
+          errorMessage = "Invalid email or password. Please check your credentials or sign up for a new account.";
+        } else if (error.code === "auth/wrong-password") {
+          errorMessage = "Incorrect password. Please try again.";
+        } else if (error.code === "auth/too-many-requests") {
+          errorMessage = "Too many failed login attempts. Please try again later.";
+        } else if (error.code === "auth/user-disabled") {
+          errorMessage = "This account has been disabled.";
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+        toast.error(errorMessage);
       } else {
         toast.success("Welcome back! You've been logged in successfully.");
         
@@ -45,15 +60,17 @@ const Auth = () => {
         if (pendingItem) {
           try {
             const product = JSON.parse(pendingItem);
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            const currentUser = auth.currentUser;
             
             if (currentUser) {
-              await supabase.from('cart_items').insert({
-                user_id: currentUser.id,
-                product_name: product.name,
-                product_price: parseFloat(product.price.replace('$', '')),
-                product_image: product.image,
-                quantity: 1
+              await addDoc(collection(db, COLLECTIONS.CART_ITEMS), {
+                userId: currentUser.uid,
+                productName: product.name,
+                productPrice: parseFloat(product.price.replace('$', '')),
+                productImage: product.image,
+                quantity: 1,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
               });
               toast.success("Product added to cart!");
             }
@@ -94,7 +111,18 @@ const Auth = () => {
       const { error } = await signUp(signupData.email, signupData.password, signupData.name);
       
       if (error) {
-        toast.error(error.message || "Failed to create account");
+        // Provide user-friendly error messages
+        let errorMessage = "Failed to create account";
+        if (error.code === "auth/email-already-in-use") {
+          errorMessage = "This email is already registered. Please sign in instead.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email address format.";
+        } else if (error.code === "auth/weak-password") {
+          errorMessage = "Password is too weak. Please use a stronger password.";
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+        toast.error(errorMessage);
       } else {
         toast.success("Account created successfully! Welcome to PeptiSync.");
         
@@ -103,15 +131,17 @@ const Auth = () => {
         if (pendingItem) {
           try {
             const product = JSON.parse(pendingItem);
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            const currentUser = auth.currentUser;
             
             if (currentUser) {
-              await supabase.from('cart_items').insert({
-                user_id: currentUser.id,
-                product_name: product.name,
-                product_price: parseFloat(product.price.replace('$', '')),
-                product_image: product.image,
-                quantity: 1
+              await addDoc(collection(db, COLLECTIONS.CART_ITEMS), {
+                userId: currentUser.uid,
+                productName: product.name,
+                productPrice: parseFloat(product.price.replace('$', '')),
+                productImage: product.image,
+                quantity: 1,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
               });
               toast.success("Product added to cart!");
             }

@@ -1,10 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, Package, ShoppingCart, TrendingUp } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, DollarSign } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
-import { AdminProducts } from "@/components/admin/AdminProducts";
-import { AdminOrders } from "@/components/admin/AdminOrders";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
+import { AdminVendorModeration } from "@/components/admin/AdminVendorModeration";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { useNavigate } from "react-router-dom";
 
@@ -33,7 +32,7 @@ const Admin = () => {
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Analytics
@@ -42,13 +41,9 @@ const Admin = () => {
                 <Users className="w-4 h-4" />
                 Users
               </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Products
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4" />
-                Orders
+              <TabsTrigger value="vendor-moderation" className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Vendor Moderation
               </TabsTrigger>
             </TabsList>
 
@@ -60,12 +55,8 @@ const Admin = () => {
               <AdminUsers />
             </TabsContent>
 
-            <TabsContent value="products">
-              <AdminProducts />
-            </TabsContent>
-
-            <TabsContent value="orders">
-              <AdminOrders />
+            <TabsContent value="vendor-moderation">
+              <AdminVendorModeration />
             </TabsContent>
           </Tabs>
         </main>

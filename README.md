@@ -1,15 +1,15 @@
-# PeptiSync Nova - E-Commerce Platform
+# PeptiSync - Peptide Tracking Platform
 
 <div align="center">
 
-**🎉 PROJECT STATUS: COMPLETE & PRODUCTION READY 🎉**
+**🎉 PROJECT STATUS: PRODUCTION READY 🎉**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-2.58-green.svg)](https://supabase.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-10.14-orange.svg)](https://firebase.google.com/)
 
-**Advanced Peptide Tracking & E-Commerce Platform**
+**Advanced Peptide Tracking & Management Platform**
 
 </div>
 
@@ -21,40 +21,30 @@
 - **[docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)** ⭐ **START HERE** - Get running in 10 minutes
 - **[docs/guides/QUICK_REFERENCE.md](docs/guides/QUICK_REFERENCE.md)** 🔥 **CHEAT SHEET** - Essential commands & info
 - **[docs/guides/ADMIN_ACCESS_GUIDE.md](docs/guides/ADMIN_ACCESS_GUIDE.md)** 🔐 **ADMIN SETUP** - Access admin panel
-- **[docs/guides/PROJECT_README.md](docs/guides/PROJECT_README.md)** - Complete project overview
 
 ### 🚀 Deployment
 - **[docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)** - Deploy to production
 - **[docs/deployment/DEPLOYMENT_CHECKLIST.md](docs/deployment/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment verification
-- **[docs/deployment/RESPONSIVE_DESIGN.md](docs/deployment/RESPONSIVE_DESIGN.md)** - Mobile optimization guide
 
 ### 🔒 Security & Testing
 - **[docs/security/SECURITY.md](docs/security/SECURITY.md)** - Security implementation details
 - **[docs/TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md)** - Complete testing guide
-- **[docs/INTEGRATION_TESTING.md](docs/INTEGRATION_TESTING.md)** - End-to-end testing
-
-### 🛠️ Development & Troubleshooting
-- **[docs/development/](docs/development/)** - Development guides and task summaries
-- **[docs/troubleshooting/](docs/troubleshooting/)** - Troubleshooting guides
 
 ---
 
 ## ✨ What's Included
 
-### Complete E-Commerce Platform
+### Core Features
 - ✅ User authentication & authorization
-- ✅ Product management with search & filters
-- ✅ Shopping cart with real-time sync
-- ✅ Stripe payment integration
-- ✅ Order tracking & management
-- ✅ Product reviews & ratings
-- ✅ Admin dashboard with analytics
-- ✅ Email notifications
+- ✅ Peptide tracking and management
+- ✅ Protocol scheduling and reminders
+- ✅ Progress tracking and analytics
+- ✅ Admin dashboard with user management
 - ✅ Mobile-responsive design
 - ✅ WCAG 2.1 AA accessibility
+- ✅ Dark mode support
 
 ### Comprehensive Documentation
-- ✅ 11 detailed guides (3,000+ lines)
 - ✅ Quick start guide
 - ✅ Deployment instructions
 - ✅ Security documentation
@@ -67,7 +57,6 @@
 - ✅ Netlify configuration
 - ✅ Environment templates
 - ✅ Database migrations
-- ✅ Edge functions
 
 ---
 
@@ -81,7 +70,7 @@ npm install
 cp .env.example .env
 # Edit .env with your credentials
 
-# 3. Apply database migrations
+# 3. Apply database migrations (if using Supabase)
 npx supabase db push
 
 # 4. Start development server
@@ -96,27 +85,26 @@ npm run dev
 
 ### Quick Admin Setup
 
-1. **Register an account** at `http://localhost:8080/auth`
-2. **Open Supabase SQL Editor** at [supabase.com/dashboard](https://supabase.com/dashboard)
-3. **Run this query** (replace with your email):
+The admin email is pre-configured in the `.env` file as `rahulsinghnegi25561@gmail.com`.
 
-```sql
-INSERT INTO user_roles (user_id, role)
-SELECT id, 'admin'
-FROM auth.users
-WHERE email = 'your-email@example.com'
-ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
-```
+1. **Add admin email to `.env`**:
+   ```env
+   VITE_ADMIN_EMAIL=rahulsinghnegi25561@gmail.com
+   ```
 
-4. **Logout and login again**
-5. **Access admin panel** at `http://localhost:8080/admin`
+2. **Register/Login** with `rahulsinghnegi25561@gmail.com` at `http://localhost:8080/auth`
+
+3. **Admin access is automatic** - The system will automatically grant admin role on login
+
+4. **Access admin panel** at `http://localhost:8080/admin`
+
+**Note:** Admin role is automatically granted when the configured admin email signs in. No manual database setup required!
 
 ### Admin Panel Features
 
-- 📊 **Analytics Dashboard** - Revenue, orders, trends
-- 📦 **Product Management** - CRUD operations, inventory
-- 🛍️ **Order Management** - Status updates, tracking
-- 👥 **User Management** - View users and their orders
+- 📊 **Analytics Dashboard** - User growth and activity metrics
+- 👥 **User Management** - View and manage users
+- ⚙️ **System Settings** - Configure platform settings
 
 **Detailed guide:** See [docs/guides/ADMIN_ACCESS_GUIDE.md](docs/guides/ADMIN_ACCESS_GUIDE.md)
 
@@ -127,12 +115,16 @@ ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
 Your `.env` file should contain:
 
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key_here
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 
-# Stripe Configuration (get from stripe.com/test)
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+# Admin Configuration
+VITE_ADMIN_EMAIL=rahulsinghnegi25561@gmail.com
 
 # Application URL
 VITE_APP_URL=http://localhost:8080
@@ -140,22 +132,11 @@ VITE_APP_URL=http://localhost:8080
 
 ### Getting Your Credentials
 
-1. **Supabase:**
-   - Go to [supabase.com/dashboard](https://supabase.com/dashboard)
+1. **Firebase:**
+   - Go to [console.firebase.google.com](https://console.firebase.google.com)
    - Select your project
-   - Go to Settings → API
-   - Copy Project URL and anon/public key
-
-2. **Stripe:**
-   - Go to [dashboard.stripe.com/test/apikeys](https://dashboard.stripe.com/test/apikeys)
-   - Copy "Publishable key" (starts with `pk_test_`)
-
-3. **Stripe Secret (for Edge Functions):**
-   ```bash
-   npx supabase secrets set STRIPE_SECRET_KEY=sk_test_your_secret_key
-   ```
-
-**Full setup:** See [docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)
+   - Go to Project Settings → General
+   - Scroll to "Your apps" and copy the config values
 
 ---
 
@@ -166,51 +147,12 @@ VITE_APP_URL=http://localhost:8080
 | Page | URL | Description |
 |------|-----|-------------|
 | Home | `http://localhost:8080/` | Landing page |
-| Store | `http://localhost:8080/store` | Product catalog |
 | Auth | `http://localhost:8080/auth` | Login/Register |
 | Dashboard | `http://localhost:8080/dashboard` | User dashboard |
 | Admin Panel | `http://localhost:8080/admin` | Admin panel (requires admin role) |
-| Checkout | `http://localhost:8080/checkout` | Checkout page |
 | Settings | `http://localhost:8080/settings` | User settings |
-
-### Supabase Dashboard
-
-- **Project Dashboard:** `https://supabase.com/dashboard/project/rirckslupgqpcohgkomo`
-- **SQL Editor:** `https://supabase.com/dashboard/project/rirckslupgqpcohgkomo/sql`
-- **Storage:** `https://supabase.com/dashboard/project/rirckslupgqpcohgkomo/storage/buckets`
-- **Edge Functions:** `https://supabase.com/dashboard/project/rirckslupgqpcohgkomo/functions`
-
----
-
-## 🧪 Test Credentials
-
-### Stripe Test Cards
-
-| Card Number | Scenario | CVC | Expiry |
-|-------------|----------|-----|--------|
-| `4242 4242 4242 4242` | Success | Any 3 digits | Any future date |
-| `4000 0000 0000 0002` | Decline | Any 3 digits | Any future date |
-| `4000 0027 6000 3184` | 3D Secure | Any 3 digits | Any future date |
-
-### Test User Accounts
-
-After registration, you can create test accounts:
-
-```sql
--- Create admin user (run in Supabase SQL Editor)
-INSERT INTO user_roles (user_id, role)
-SELECT id, 'admin'
-FROM auth.users
-WHERE email = 'admin@test.com'
-ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
-
--- Create moderator user
-INSERT INTO user_roles (user_id, role)
-SELECT id, 'moderator'
-FROM auth.users
-WHERE email = 'moderator@test.com'
-ON CONFLICT (user_id) DO UPDATE SET role = 'moderator';
-```
+| Features | `http://localhost:8080/features` | Feature showcase |
+| FAQ | `http://localhost:8080/faq` | Frequently asked questions |
 
 ---
 
@@ -218,10 +160,9 @@ ON CONFLICT (user_id) DO UPDATE SET role = 'moderator';
 
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
 - **UI:** shadcn/ui (Radix UI primitives)
-- **Backend:** Supabase (PostgreSQL, Auth, Storage, Edge Functions)
-- **Payments:** Stripe
-- **Email:** Resend
+- **Backend:** Firebase (Authentication, Firestore, Storage)
 - **Deployment:** Vercel / Render / Netlify
+- **Animations:** Framer Motion
 
 ---
 
@@ -246,47 +187,6 @@ npm run lint
 npm run type-check
 ```
 
-### Supabase
-
-```bash
-# Login to Supabase
-npx supabase login
-
-# Link to your project
-npx supabase link --project-ref rirckslupgqpcohgkomo
-
-# Apply migrations
-npx supabase db push
-
-# Reset database (WARNING: deletes all data)
-npx supabase db reset
-
-# Deploy Edge Function
-npx supabase functions deploy create-payment-intent
-
-# Set secrets
-npx supabase secrets set STRIPE_SECRET_KEY=sk_test_...
-
-# View function logs
-npx supabase functions logs create-payment-intent
-
-# List all functions
-npx supabase functions list
-
-# List all secrets
-npx supabase secrets list
-```
-
-### Database Queries
-
-```bash
-# Open Supabase SQL Editor in browser
-# Go to: https://supabase.com/dashboard/project/rirckslupgqpcohgkomo/sql
-
-# Or use CLI
-npx supabase db diff
-```
-
 ### Deployment
 
 ```bash
@@ -305,16 +205,14 @@ git push origin main  # Auto-deploys
 ## 📦 Project Structure
 
 ```
-peptisync-nova-main/
+peptisync/
 ├── src/                    # Application source code
 │   ├── components/         # React components
 │   ├── pages/             # Page components
 │   ├── hooks/             # Custom hooks
 │   ├── lib/               # Utilities & helpers
-│   └── integrations/      # Third-party integrations
-├── supabase/              # Database & Edge Functions
-│   ├── migrations/        # Database migrations
-│   └── functions/         # Edge Functions
+│   ├── contexts/          # React contexts
+│   └── types/             # TypeScript types
 ├── public/                # Static assets
 ├── docs/                  # Additional documentation
 ├── .env.example          # Environment template
@@ -349,30 +247,23 @@ netlify deploy --prod
 
 ## 📊 Features
 
-### For Customers
-- 🔍 Browse products with advanced search
-- 🛒 Add to cart with real-time sync
-- 💳 Secure checkout with Stripe
-- 📦 Order tracking with timeline
-- ⭐ Product reviews and ratings
+### For Users
+- 🔍 Track peptide protocols and schedules
+- 📅 Set reminders and notifications
+- 📊 View progress and analytics
 - 👤 Profile management with avatar
-- 📧 Email notifications for orders
+- 🌙 Dark mode support
 - 📱 Mobile-responsive design
 
 ### For Admins
 - 📊 Analytics dashboard with charts
-- 📦 Product CRUD operations
-- 📷 Image upload and management
-- 📉 Inventory tracking and alerts
-- 🛍️ Order management and status updates
-- 📮 Tracking number management
 - 👥 User management and viewing
-- 📈 Revenue and sales analytics
+- ⚙️ System configuration
+- 📈 User growth analytics
 
 ### User Roles
 - **Admin** - Full access to admin panel and all features
-- **Moderator** - Can manage products and orders
-- **User** - Can browse, purchase, and review products
+- **User** - Can track peptides and manage their own data
 
 ---
 
@@ -381,7 +272,7 @@ netlify deploy --prod
 - ✅ CSRF protection
 - ✅ XSS prevention
 - ✅ SQL injection prevention
-- ✅ RLS policies on all tables
+- ✅ Firestore security rules
 - ✅ Rate limiting
 - ✅ Session management
 - ✅ Input validation
@@ -442,28 +333,6 @@ netlify deploy --prod
 
 ---
 
-## 📚 Documentation Index
-
-### Essential Guides
-1. **[docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)** - Get started in 10 minutes ⭐
-2. **[docs/guides/PROJECT_README.md](docs/guides/PROJECT_README.md)** - Complete overview
-3. **[docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)** - Deployment guide
-
-### Security & Testing
-4. **[docs/security/SECURITY.md](docs/security/SECURITY.md)** - Security details
-5. **[docs/TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md)** - Testing guide
-6. **[docs/INTEGRATION_TESTING.md](docs/INTEGRATION_TESTING.md)** - E2E testing
-
-### Deployment & Operations
-7. **[docs/deployment/DEPLOYMENT_CHECKLIST.md](docs/deployment/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment
-8. **[docs/deployment/RESPONSIVE_DESIGN.md](docs/deployment/RESPONSIVE_DESIGN.md)** - Mobile guide
-
-### Development & Troubleshooting
-9. **[docs/development/](docs/development/)** - Development guides and summaries
-10. **[docs/troubleshooting/](docs/troubleshooting/)** - Troubleshooting guides
-
----
-
 ## 🆘 Troubleshooting
 
 ### Common Issues
@@ -471,56 +340,23 @@ netlify deploy --prod
 #### 1. Can't Access Admin Panel
 **Problem:** Getting "Access Denied" at `/admin`
 
-**Solution:**
-```sql
--- Run in Supabase SQL Editor
-INSERT INTO user_roles (user_id, role)
-SELECT id, 'admin'
-FROM auth.users
-WHERE email = 'your-email@example.com'
-ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
-```
-Then logout and login again.
+**Solution:** Grant admin role to your user in Firebase Console or Supabase SQL Editor.
 
-#### 2. Payment Processing Fails
-**Problem:** Stripe payment doesn't work
-
-**Solution:**
-- Check `VITE_STRIPE_PUBLISHABLE_KEY` in `.env`
-- Verify Edge Function deployed: `npx supabase functions list`
-- Set Stripe secret: `npx supabase secrets set STRIPE_SECRET_KEY=sk_test_...`
-- Use test card: `4242 4242 4242 4242`
-
-#### 3. Images Not Uploading
-**Problem:** Product/avatar images fail
-
-**Solution:**
-- Create storage buckets in Supabase Dashboard:
-  - `avatars` (public)
-  - `products` (public)
-  - `documents` (private)
-- Check file size limits (5MB for products, 2MB for avatars)
-- Verify file types (jpg, png, webp only)
-
-#### 4. Database Connection Error
+#### 2. Database Connection Error
 **Problem:** "Invalid API key" or connection fails
 
 **Solution:**
-- Verify `.env` has correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
+- Verify `.env` has correct Firebase or Supabase credentials
 - Restart dev server: `npm run dev`
-- Check Supabase project is not paused
+- Check Firebase/Supabase project is active
 
-#### 5. Email Notifications Not Sending
-**Problem:** Users not receiving emails
+#### 3. Images Not Uploading
+**Problem:** Avatar images fail
 
 **Solution:**
-```bash
-# Set Resend API key
-npx supabase secrets set RESEND_API_KEY=re_your_key
-
-# Deploy email function
-npx supabase functions deploy send-email
-```
+- Check storage bucket permissions in Firebase/Supabase
+- Verify file size limits (2MB for avatars)
+- Verify file types (jpg, png, webp only)
 
 ### Getting Help
 
@@ -532,8 +368,7 @@ npx supabase functions deploy send-email
 - 🚀 [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md) - Deployment guide
 
 **External Resources:**
-- [Supabase Documentation](https://supabase.com/docs)
-- [Stripe Documentation](https://stripe.com/docs)
+- [Firebase Documentation](https://firebase.google.com/docs)
 - [React Documentation](https://react.dev)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
@@ -547,11 +382,10 @@ MIT License - See LICENSE file for details
 
 ## 🎉 Status
 
-**✅ 100% COMPLETE & PRODUCTION READY**
+**✅ PRODUCTION READY**
 
-- All features implemented
-- All documentation complete
-- All tests passing
+- All core features implemented
+- Documentation complete
 - Security hardened
 - Performance optimized
 - Deployment ready
