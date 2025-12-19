@@ -63,12 +63,17 @@ export const PLAN_TIERS = {
 export const PLAN_HIERARCHY = ['free', 'basic', 'pro', 'pro_plus', 'elite'] as const;
 
 export const BLOG_CATEGORIES = [
-  { id: "tracking-tips", name: "Tracking Tips", slug: "tracking-tips" },
-  { id: "organization", name: "Organization", slug: "organization" },
-  { id: "recovery", name: "Recovery", slug: "recovery" },
-  { id: "app-updates", name: "App Updates", slug: "app-updates" },
-  { id: "vendor-insights", name: "Vendor Insights", slug: "vendor-insights" },
-];
+  'Tracking Tips',
+  'Organization',
+  'Recovery',
+  'App Updates',
+  'Vendor Insights',
+  'Research',
+  'Wellness',
+  'Community'
+] as const;
+
+export type BlogCategory = typeof BLOG_CATEGORIES[number];
 
 export const CONTACT_SUBJECTS = [
   { value: "general", label: "General Inquiry" },
@@ -77,4 +82,31 @@ export const CONTACT_SUBJECTS = [
   { value: "feature", label: "Feature Request" },
   { value: "other", label: "Other" },
 ];
+
+// Peptide categories (matches app)
+export const PEPTIDE_CATEGORIES = [
+  'Weight Loss',
+  'Recovery',
+  'Anti-aging',
+  'Performance',
+  'Growth',
+  'Immunity',
+  'Cognitive',
+  'GH Axis',
+  'Metabolic',
+  'Sexual Wellness'
+] as const;
+
+export type PeptideCategory = typeof PEPTIDE_CATEGORIES[number];
+
+// Peptide forms
+export const PEPTIDE_FORMS = [
+  'Powder',
+  'Liquid',
+  'Tablet',
+  'Capsule',
+  'Injectable'
+] as const;
+
+export type PeptideForm = typeof PEPTIDE_FORMS[number];
 

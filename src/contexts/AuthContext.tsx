@@ -8,6 +8,8 @@ import {
   sendEmailVerification,
   updateProfile,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, setDoc, getDoc, Timestamp } from "firebase/firestore";
@@ -23,6 +25,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
 }
@@ -33,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signUp: async () => ({ error: new Error("Auth not initialized") }),
   signIn: async () => ({ error: new Error("Auth not initialized") }),
+  signInWithGoogle: async () => ({ error: new Error("Auth not initialized") }),
   signOut: async () => {},
   resetPassword: async () => ({ error: new Error("Auth not initialized") }),
 });
@@ -77,12 +81,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const userProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> = {
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
-            fullName: firebaseUser.displayName || '',
+            fullName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            avatarUrl: firebaseUser.photoURL || undefined,
             membershipTier: 'free',
           };
           
           await setDoc(userDocRef, {
             ...userProfile,
+            display_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            photo_url: firebaseUser.photoURL || '',
+            created_time: Timestamp.now(),
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
           });
@@ -159,6 +167,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Check if user profile exists, create if not
+      const userDocRef = doc(db, COLLECTIONS.USERS, result.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        const userProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> = {
+          uid: result.user.uid,
+          email: result.user.email || '',
+          fullName: result.user.displayName || '',
+          avatarUrl: result.user.photoURL || undefined,
+          membershipTier: 'free',
+        };
+        
+        await setDoc(userDocRef, {
+          ...userProfile,
+          display_name: result.user.displayName || '',
+          photo_url: result.user.photoURL || '',
+          created_time: Timestamp.now(),
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        });
+        
+        // Send welcome email
+        if (result.user.email && result.user.displayName) {
+          try {
+            await sendWelcomeEmail(result.user.email, {
+              userName: result.user.displayName,
+            });
+          } catch (emailError) {
+            console.error("Failed to send welcome email:", emailError);
+            // Don't fail the signup if email fails
+          }
+        }
+      }
+      
+      return { error: null };
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     sessionManager.stop();
     
@@ -193,6 +248,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     resetPassword,
   };

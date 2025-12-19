@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { checkUserRole } from "@/lib/authorization";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc, Timestamp } from "firebase/firestore";
 import { COLLECTIONS } from "@/lib/firestoreHelpers";
 import type { UserProfile } from "@/types/firestore";
 
@@ -40,9 +40,37 @@ const Dashboard = () => {
     try {
       if (!user) return;
 
-      // Fetch user profile from Firestore
+      // Fetch user profile from Firestore with retry logic for new Google sign-ins
       const userDocRef = doc(db, COLLECTIONS.USERS, user.uid);
-      const userDoc = await getDoc(userDocRef);
+      let userDoc = await getDoc(userDocRef);
+      
+      // If profile doesn't exist yet, wait and retry (for Google sign-in race condition)
+      if (!userDoc.exists()) {
+        console.log("Profile not found, waiting for creation...");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        userDoc = await getDoc(userDocRef);
+        
+        // If still doesn't exist, create it now
+        if (!userDoc.exists()) {
+          console.log("Creating profile now...");
+          const newProfile = {
+            uid: user.uid,
+            email: user.email || '',
+            fullName: user.displayName || user.email?.split('@')[0] || 'User',
+            display_name: user.displayName || user.email?.split('@')[0] || 'User',
+            avatarUrl: user.photoURL || '',
+            photo_url: user.photoURL || '',
+            membershipTier: 'free',
+            plan_tier: 'free',
+            created_time: Timestamp.now(),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+          };
+          
+          await setDoc(userDocRef, newProfile);
+          userDoc = await getDoc(userDocRef);
+        }
+      }
 
       if (userDoc.exists()) {
         const userData = userDoc.data() as UserProfile;
@@ -71,12 +99,12 @@ const Dashboard = () => {
           uid: userData.uid,
           email: userData.email,
           fullName: fullName,
-          avatarUrl: userData.avatarUrl || userData.photo_url,
+          avatarUrl: userData.avatarUrl || userData.photo_url || user.photoURL,
           membershipTier: membershipTier,
           createdAt: userData.createdAt || userData.created_time,
         });
       } else {
-        // Profile should have been created during sign up, but handle edge case
+        // This should never happen now, but keep as fallback
         toast.error("Profile not found. Please contact support.");
         setLoading(false);
         return;

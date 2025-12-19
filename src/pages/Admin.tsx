@@ -1,9 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, TrendingUp, DollarSign } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, DollarSign, BookOpen, Pill } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminVendorModeration } from "@/components/admin/AdminVendorModeration";
+import { AdminBlogPosts } from "@/components/admin/AdminBlogPosts";
+import { AdminPeptideManagement } from "@/components/admin/AdminPeptideManagement";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { useNavigate } from "react-router-dom";
 
@@ -32,7 +34,7 @@ const Admin = () => {
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Analytics
@@ -41,9 +43,17 @@ const Admin = () => {
                 <Users className="w-4 h-4" />
                 Users
               </TabsTrigger>
+              <TabsTrigger value="peptides" className="flex items-center gap-2">
+                <Pill className="w-4 h-4" />
+                Peptides
+              </TabsTrigger>
+              <TabsTrigger value="blog" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Blog
+              </TabsTrigger>
               <TabsTrigger value="vendor-moderation" className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
-                Vendor Moderation
+                Vendors
               </TabsTrigger>
             </TabsList>
 
@@ -53,6 +63,14 @@ const Admin = () => {
 
             <TabsContent value="users">
               <AdminUsers />
+            </TabsContent>
+
+            <TabsContent value="peptides">
+              <AdminPeptideManagement />
+            </TabsContent>
+
+            <TabsContent value="blog">
+              <AdminBlogPosts />
             </TabsContent>
 
             <TabsContent value="vendor-moderation">
