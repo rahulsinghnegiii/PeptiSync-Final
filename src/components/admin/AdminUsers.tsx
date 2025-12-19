@@ -9,11 +9,63 @@ import { COLLECTIONS } from "@/lib/firestoreHelpers";
 import { toast } from "sonner";
 import { Shield, ShieldOff, UserCog } from "lucide-react";
 
+const UserAvatar = ({ photoUrl, name, email }: { photoUrl?: string; name: string; email: string }) => {
+  const getInitials = (displayName: string, userEmail: string) => {
+    if (displayName && displayName !== userEmail.split('@')[0]) {
+      return displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return userEmail.slice(0, 2).toUpperCase();
+  };
+
+  const getColorFromString = (str: string) => {
+    const colors = [
+      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500',
+      'bg-yellow-500', 'bg-indigo-500', 'bg-red-500', 'bg-teal-500'
+    ];
+    const index = str.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const initials = getInitials(name, email);
+  const bgColor = getColorFromString(email);
+
+  if (photoUrl) {
+    return (
+      <div className="relative w-8 h-8">
+        <img
+          src={photoUrl}
+          alt={name}
+          className="w-8 h-8 rounded-full object-cover"
+          onError={(e) => {
+            // Fallback to initials if image fails to load
+            e.currentTarget.style.display = 'none';
+            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+            if (fallback) {
+              fallback.classList.remove('hidden');
+            }
+          }}
+        />
+        <div className={`hidden w-8 h-8 rounded-full ${bgColor} flex items-center justify-center text-white text-sm font-semibold`}>
+          {initials}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`w-8 h-8 rounded-full ${bgColor} flex items-center justify-center text-white text-sm font-semibold`}>
+      {initials}
+    </div>
+  );
+};
+
 interface User {
   uid: string;
   email: string;
   fullName?: string;
   display_name?: string;
+  photo_url?: string;
+  avatarUrl?: string;
   membershipTier?: string;
   plan_tier?: string;
   isAdmin?: boolean;
@@ -153,7 +205,16 @@ export const AdminUsers = () => {
                   
                   return (
                     <TableRow key={`user-${user.uid}-${index}`}>
-                      <TableCell className="font-medium">{displayName}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <UserAvatar 
+                            photoUrl={user.photo_url || user.avatarUrl} 
+                            name={displayName}
+                            email={user.email}
+                          />
+                          <span>{displayName}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="capitalize">
