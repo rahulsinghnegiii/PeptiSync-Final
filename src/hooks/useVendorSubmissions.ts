@@ -279,3 +279,98 @@ export function useToggleVendorVerification() {
   return { toggleVerification, toggling };
 }
 
+// Hook to update an existing submission (admin only)
+export function useUpdateSubmission() {
+  const [updating, setUpdating] = useState(false);
+
+  const updateSubmission = async (
+    submissionId: string, 
+    data: {
+      peptideName: string;
+      priceUsd: number;
+      shippingOrigin: string;
+      vendorName?: string;
+      vendorUrl?: string;
+      discountCode?: string;
+    }
+  ) => {
+    setUpdating(true);
+    try {
+      const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      await updateDoc(submissionRef, {
+        peptide_name: data.peptideName,
+        price_usd: data.priceUsd,
+        shipping_origin: data.shippingOrigin,
+        vendor_name: data.vendorName || "",
+        vendor_url: data.vendorUrl || "",
+        discount_code: data.discountCode || "",
+        updated_at: serverTimestamp(),
+      });
+
+      toast.success("Submission updated successfully!");
+      return true;
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      toast.error("Failed to update submission.");
+      return false;
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  return { updateSubmission, updating };
+}
+
+// Hook to create a new submission directly (admin only)
+export function useCreateAdminSubmission() {
+  const [creating, setCreating] = useState(false);
+
+  const createSubmission = async (
+    data: {
+      peptideName: string;
+      priceUsd: number;
+      shippingOrigin: string;
+      vendorName?: string;
+      vendorUrl?: string;
+      discountCode?: string;
+      verifiedVendor?: boolean;
+    },
+    userId: string
+  ) => {
+    setCreating(true);
+    try {
+      const submissionData = {
+        peptide_id: null,
+        peptide_name: data.peptideName,
+        price_usd: data.priceUsd,
+        shipping_origin: data.shippingOrigin,
+        vendor_name: data.vendorName || "",
+        vendor_url: data.vendorUrl || "",
+        discount_code: data.discountCode || "",
+        screenshot_url: "",
+        submitted_by: userId,
+        submitted_at: serverTimestamp(),
+        approval_status: "approved", // Auto-approve admin submissions
+        approved_by: userId,
+        reviewed_at: serverTimestamp(),
+        rejection_reason: "",
+        auto_approved: true,
+        verified_vendor: data.verifiedVendor || false,
+        display_on_public: true,
+      };
+
+      await addDoc(collection(db, "vendor_pricing_submissions"), submissionData);
+      toast.success("Vendor price added successfully!");
+      return true;
+    } catch (error) {
+      console.error("Error creating submission:", error);
+      toast.error("Failed to add vendor price.");
+      return false;
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return { createSubmission, creating };
+}
+

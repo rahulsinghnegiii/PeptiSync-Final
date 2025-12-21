@@ -29,17 +29,21 @@ import {
   Shield, 
   ShieldOff,
   Eye,
-  Clock
+  Clock,
+  Plus
 } from "lucide-react";
 import { 
   useAllVendorSubmissions,
   useApproveSubmission,
   useRejectSubmission,
   useDeleteSubmission,
-  useToggleVendorVerification
+  useToggleVendorVerification,
+  useUpdateSubmission,
+  useCreateAdminSubmission
 } from "@/hooks/useVendorSubmissions";
 import { useAuth } from "@/contexts/AuthContext";
 import type { VendorPriceSubmission } from "@/types/vendor";
+import { VendorPriceForm } from "./VendorPriceForm";
 
 export const AdminVendorModeration = () => {
   const { user } = useAuth();
@@ -47,6 +51,8 @@ export const AdminVendorModeration = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const { submissions: pendingSubmissions, loading: loadingPending } = useAllVendorSubmissions('pending');
   const { submissions: approvedSubmissions, loading: loadingApproved } = useAllVendorSubmissions('approved');
@@ -56,6 +62,8 @@ export const AdminVendorModeration = () => {
   const { reject, rejecting } = useRejectSubmission();
   const { deleteSubmission, deleting } = useDeleteSubmission();
   const { toggleVerification, toggling } = useToggleVendorVerification();
+  const { updateSubmission, updating } = useUpdateSubmission();
+  const { createSubmission, creating } = useCreateAdminSubmission();
 
   const handleApprove = async (submission: VendorPriceSubmission) => {
     if (!user) return;
@@ -93,6 +101,45 @@ export const AdminVendorModeration = () => {
   const openDetailDialog = (submission: VendorPriceSubmission) => {
     setSelectedSubmission(submission);
     setShowDetailDialog(true);
+  };
+
+  const openEditDialog = (submission: VendorPriceSubmission) => {
+    setSelectedSubmission(submission);
+    setShowEditDialog(true);
+  };
+
+  const handleEdit = async (data: {
+    peptideName: string;
+    priceUsd: number;
+    shippingOrigin: string;
+    vendorName?: string;
+    vendorUrl?: string;
+    discountCode?: string;
+  }) => {
+    if (!selectedSubmission) return false;
+    const success = await updateSubmission(selectedSubmission.id, data);
+    if (success) {
+      setShowEditDialog(false);
+      setSelectedSubmission(null);
+    }
+    return success;
+  };
+
+  const handleCreate = async (data: {
+    peptideName: string;
+    priceUsd: number;
+    shippingOrigin: string;
+    vendorName?: string;
+    vendorUrl?: string;
+    discountCode?: string;
+    verifiedVendor?: boolean;
+  }) => {
+    if (!user) return false;
+    const success = await createSubmission(data, user.uid);
+    if (success) {
+      setShowCreateDialog(false);
+    }
+    return success;
   };
 
   const formatDate = (timestamp: any) => {
@@ -134,6 +181,14 @@ export const AdminVendorModeration = () => {
               onClick={() => openDetailDialog(submission)}
             >
               <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => openEditDialog(submission)}
+              title="Edit submission"
+            >
+              <Edit className="w-4 h-4" />
             </Button>
             {submission.approvalStatus === 'pending' && (
               <>
@@ -186,6 +241,20 @@ export const AdminVendorModeration = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Add Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Vendor Price Management</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Moderate submissions and manage vendor pricing data
+          </p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Vendor Price
+        </Button>
+      </div>
+
       <Tabs defaultValue="pending" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending" className="flex items-center gap-2">
@@ -438,6 +507,43 @@ export const AdminVendorModeration = () => {
               Close
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Edit Vendor Price</DialogTitle>
+            <DialogDescription>
+              Update the details for this vendor price submission
+            </DialogDescription>
+          </DialogHeader>
+          <VendorPriceForm
+            submission={selectedSubmission}
+            onSubmit={handleEdit}
+            onCancel={() => setShowEditDialog(false)}
+            isSubmitting={updating}
+            mode="edit"
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Add Vendor Price</DialogTitle>
+            <DialogDescription>
+              Add a new vendor price directly. This will be automatically approved.
+            </DialogDescription>
+          </DialogHeader>
+          <VendorPriceForm
+            onSubmit={handleCreate}
+            onCancel={() => setShowCreateDialog(false)}
+            isSubmitting={creating}
+            mode="create"
+          />
         </DialogContent>
       </Dialog>
     </div>
