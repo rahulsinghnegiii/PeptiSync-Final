@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import type { VendorPriceSubmission } from "@/types/vendor";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { toast } from "sonner";
+import { Upload, X, FileText } from "lucide-react";
 
 interface VendorPriceFormProps {
   submission?: VendorPriceSubmission | null;
@@ -26,6 +31,7 @@ interface VendorPriceFormProps {
     discountCode?: string;
     userNotes?: string;
     priceVerificationUrl?: string;
+    labTestResultsUrl?: string;
     verifiedVendor?: boolean;
   }) => Promise<boolean>;
   onCancel: () => void;
@@ -61,10 +67,14 @@ export const VendorPriceForm = ({
     discountCode: "",
     userNotes: "",
     priceVerificationUrl: "",
+    labTestResultsUrl: "",
     verifiedVendor: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form with submission data if editing
   useEffect(() => {
@@ -80,6 +90,7 @@ export const VendorPriceForm = ({
         discountCode: submission.discountCode || "",
         userNotes: submission.userNotes || "",
         priceVerificationUrl: submission.priceVerificationUrl || "",
+        labTestResultsUrl: submission.labTestResultsUrl || "",
         verifiedVendor: submission.verifiedVendor || false,
       });
     }
@@ -131,6 +142,70 @@ export const VendorPriceForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type (PDF, images)
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a PDF or image file (JPG, PNG, WebP)');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Create a unique filename
+      const timestamp = Date.now();
+      const filename = `lab-test-results/${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const storageRef = ref(storage, filename);
+
+      // Upload file
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          // Track upload progress
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error('Upload error:', error);
+          toast.error('Failed to upload file');
+          setUploading(false);
+        },
+        async () => {
+          // Upload completed successfully
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setFormData(prev => ({ ...prev, labTestResultsUrl: downloadURL }));
+          toast.success('Lab test results uploaded successfully!');
+          setUploading(false);
+          setUploadProgress(0);
+        }
+      );
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload file');
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFormData(prev => ({ ...prev, labTestResultsUrl: '' }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -149,6 +224,7 @@ export const VendorPriceForm = ({
       discountCode: formData.discountCode.trim() || undefined,
       userNotes: formData.userNotes.trim() || undefined,
       priceVerificationUrl: formData.priceVerificationUrl.trim() || undefined,
+      labTestResultsUrl: formData.labTestResultsUrl.trim() || undefined,
       verifiedVendor: formData.verifiedVendor,
     });
 
@@ -166,8 +242,12 @@ export const VendorPriceForm = ({
           discountCode: "",
           userNotes: "",
           priceVerificationUrl: "",
+          labTestResultsUrl: "",
           verifiedVendor: false,
         });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     }
   };
@@ -338,6 +418,8 @@ export const VendorPriceForm = ({
 
       {/* Additional Info Section */}
       <div className="space-y-4 pt-2 border-t">
+        <h3 className="text-sm font-semibold text-muted-foreground">Additional Information</h3>
+        
         <div className="space-y-2">
           <Label htmlFor="userNotes">Notes</Label>
           <Textarea
@@ -348,6 +430,60 @@ export const VendorPriceForm = ({
             rows={3}
             disabled={isSubmitting}
           />
+        </div>
+
+        {/* Lab Test Results Upload */}
+        <div className="space-y-2">
+          <Label htmlFor="labTestResults">Lab Test Results</Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Upload lab test results (PDF or image, max 10MB)
+          </p>
+          
+          {formData.labTestResultsUrl ? (
+            <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+              <FileText className="h-5 w-5 text-primary" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">Lab test results uploaded</p>
+                <a
+                  href={formData.labTestResultsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  View file
+                </a>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleRemoveFile}
+                disabled={isSubmitting || uploading}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Input
+                ref={fileInputRef}
+                id="labTestResults"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                onChange={handleFileUpload}
+                disabled={isSubmitting || uploading}
+                className="cursor-pointer"
+              />
+              {uploading && (
+                <div className="space-y-2">
+                  <Progress value={uploadProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center">
+                    Uploading... {Math.round(uploadProgress)}%
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

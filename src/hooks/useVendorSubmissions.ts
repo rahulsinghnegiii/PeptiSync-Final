@@ -325,6 +325,7 @@ export function useUpdateSubmission() {
       discountCode?: string;
       userNotes?: string;
       priceVerificationUrl?: string;
+      labTestResultsUrl?: string;
     }
   ) => {
     setUpdating(true);
@@ -341,6 +342,7 @@ export function useUpdateSubmission() {
         discount_code: data.discountCode || "",
         user_notes: data.userNotes || "",
         price_verification_url: data.priceVerificationUrl || "",
+        lab_test_results_url: data.labTestResultsUrl || "",
         updated_at: serverTimestamp(),
       });
 
@@ -374,6 +376,7 @@ export function useCreateAdminSubmission() {
       discountCode?: string;
       userNotes?: string;
       priceVerificationUrl?: string;
+      labTestResultsUrl?: string;
       verifiedVendor?: boolean;
     },
     userId: string
@@ -396,7 +399,7 @@ export function useCreateAdminSubmission() {
         discount_code: data.discountCode || "",
         user_notes: data.userNotes || "",
         screenshot_url: "",
-        lab_test_results_url: "",
+        lab_test_results_url: data.labTestResultsUrl || "",
         price_verification_url: data.priceVerificationUrl || "",
         approval_status: "approved",
         rejection_reason: null,
