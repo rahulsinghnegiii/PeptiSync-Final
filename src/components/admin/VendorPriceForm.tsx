@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,10 +18,14 @@ interface VendorPriceFormProps {
   onSubmit: (data: {
     peptideName: string;
     priceUsd: number;
+    shippingUsd: number;
+    size: string;
     shippingOrigin: string;
     vendorName?: string;
     vendorUrl?: string;
     discountCode?: string;
+    userNotes?: string;
+    priceVerificationUrl?: string;
     verifiedVendor?: boolean;
   }) => Promise<boolean>;
   onCancel: () => void;
@@ -48,10 +53,14 @@ export const VendorPriceForm = ({
   const [formData, setFormData] = useState({
     peptideName: "",
     priceUsd: "",
+    shippingUsd: "",
+    size: "",
     shippingOrigin: "USA",
     vendorName: "",
     vendorUrl: "",
     discountCode: "",
+    userNotes: "",
+    priceVerificationUrl: "",
     verifiedVendor: false,
   });
 
@@ -63,10 +72,14 @@ export const VendorPriceForm = ({
       setFormData({
         peptideName: submission.peptideName || "",
         priceUsd: submission.priceUsd?.toString() || "",
+        shippingUsd: submission.shippingUsd?.toString() || "",
+        size: submission.size || "",
         shippingOrigin: submission.shippingOrigin || "USA",
         vendorName: submission.vendorName || "",
         vendorUrl: submission.vendorUrl || "",
         discountCode: submission.discountCode || "",
+        userNotes: submission.userNotes || "",
+        priceVerificationUrl: submission.priceVerificationUrl || "",
         verifiedVendor: submission.verifiedVendor || false,
       });
     }
@@ -84,16 +97,33 @@ export const VendorPriceForm = ({
       newErrors.priceUsd = "Valid price is required";
     }
 
+    const shippingPrice = parseFloat(formData.shippingUsd);
+    if (!formData.shippingUsd || isNaN(shippingPrice) || shippingPrice < 0) {
+      newErrors.shippingUsd = "Valid shipping cost is required (0 or more)";
+    }
+
+    if (!formData.size.trim()) {
+      newErrors.size = "Size is required";
+    }
+
     if (!formData.shippingOrigin) {
       newErrors.shippingOrigin = "Shipping origin is required";
     }
 
-    // Validate URL if provided
+    // Validate URLs if provided
     if (formData.vendorUrl && formData.vendorUrl.trim()) {
       try {
         new URL(formData.vendorUrl);
       } catch {
         newErrors.vendorUrl = "Invalid URL format";
+      }
+    }
+
+    if (formData.priceVerificationUrl && formData.priceVerificationUrl.trim()) {
+      try {
+        new URL(formData.priceVerificationUrl);
+      } catch {
+        newErrors.priceVerificationUrl = "Invalid URL format";
       }
     }
 
@@ -111,10 +141,14 @@ export const VendorPriceForm = ({
     const success = await onSubmit({
       peptideName: formData.peptideName.trim(),
       priceUsd: parseFloat(formData.priceUsd),
+      shippingUsd: parseFloat(formData.shippingUsd),
+      size: formData.size.trim(),
       shippingOrigin: formData.shippingOrigin,
       vendorName: formData.vendorName.trim() || undefined,
       vendorUrl: formData.vendorUrl.trim() || undefined,
       discountCode: formData.discountCode.trim() || undefined,
+      userNotes: formData.userNotes.trim() || undefined,
+      priceVerificationUrl: formData.priceVerificationUrl.trim() || undefined,
       verifiedVendor: formData.verifiedVendor,
     });
 
@@ -124,10 +158,14 @@ export const VendorPriceForm = ({
         setFormData({
           peptideName: "",
           priceUsd: "",
+          shippingUsd: "",
+          size: "",
           shippingOrigin: "USA",
           vendorName: "",
           vendorUrl: "",
           discountCode: "",
+          userNotes: "",
+          priceVerificationUrl: "",
           verifiedVendor: false,
         });
       }
@@ -136,101 +174,181 @@ export const VendorPriceForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="peptideName">
-          Peptide Name <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="peptideName"
-          value={formData.peptideName}
-          onChange={(e) => setFormData({ ...formData, peptideName: e.target.value })}
-          placeholder="e.g., BPC-157, TB-500"
-          disabled={isSubmitting}
-        />
-        {errors.peptideName && (
-          <p className="text-sm text-destructive">{errors.peptideName}</p>
-        )}
+      {/* Basic Info Section */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="peptideName">
+            Peptide Name <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="peptideName"
+            value={formData.peptideName}
+            onChange={(e) => setFormData({ ...formData, peptideName: e.target.value })}
+            placeholder="e.g., BPC-157, TB-500"
+            disabled={isSubmitting}
+          />
+          {errors.peptideName && (
+            <p className="text-sm text-destructive">{errors.peptideName}</p>
+          )}
+        </div>
+
+        {/* Price and Size Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="size">
+              Size <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="size"
+              value={formData.size}
+              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+              placeholder="e.g., 5mg, 10mg"
+              disabled={isSubmitting}
+            />
+            {errors.size && (
+              <p className="text-sm text-destructive">{errors.size}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="shippingOrigin">
+              Shipping Origin <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.shippingOrigin}
+              onValueChange={(value) => setFormData({ ...formData, shippingOrigin: value })}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="shippingOrigin">
+                <SelectValue placeholder="Select origin" />
+              </SelectTrigger>
+              <SelectContent>
+                {SHIPPING_ORIGINS.map((origin) => (
+                  <SelectItem key={origin} value={origin}>
+                    {origin}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.shippingOrigin && (
+              <p className="text-sm text-destructive">{errors.shippingOrigin}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Pricing Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="priceUsd">
+              Price (USD) <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="priceUsd"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.priceUsd}
+              onChange={(e) => setFormData({ ...formData, priceUsd: e.target.value })}
+              placeholder="0.00"
+              disabled={isSubmitting}
+            />
+            {errors.priceUsd && (
+              <p className="text-sm text-destructive">{errors.priceUsd}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="shippingUsd">
+              Shipping Cost (USD) <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="shippingUsd"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.shippingUsd}
+              onChange={(e) => setFormData({ ...formData, shippingUsd: e.target.value })}
+              placeholder="0.00"
+              disabled={isSubmitting}
+            />
+            {errors.shippingUsd && (
+              <p className="text-sm text-destructive">{errors.shippingUsd}</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="priceUsd">
-          Price (USD) <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="priceUsd"
-          type="number"
-          step="0.01"
-          min="0"
-          value={formData.priceUsd}
-          onChange={(e) => setFormData({ ...formData, priceUsd: e.target.value })}
-          placeholder="0.00"
-          disabled={isSubmitting}
-        />
-        {errors.priceUsd && (
-          <p className="text-sm text-destructive">{errors.priceUsd}</p>
-        )}
+      {/* Vendor Info Section */}
+      <div className="space-y-4 pt-2 border-t">
+        <h3 className="text-sm font-semibold text-muted-foreground">Vendor Information</h3>
+        <div className="space-y-2">
+          <Label htmlFor="vendorName">Vendor Name</Label>
+          <Input
+            id="vendorName"
+            value={formData.vendorName}
+            onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
+            placeholder="e.g., PeptideSciences"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="vendorUrl">Vendor URL</Label>
+          <Input
+            id="vendorUrl"
+            type="url"
+            value={formData.vendorUrl}
+            onChange={(e) => setFormData({ ...formData, vendorUrl: e.target.value })}
+            placeholder="https://example.com"
+            disabled={isSubmitting}
+          />
+          {errors.vendorUrl && (
+            <p className="text-sm text-destructive">{errors.vendorUrl}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="discountCode">Discount Code</Label>
+            <Input
+              id="discountCode"
+              value={formData.discountCode}
+              onChange={(e) => setFormData({ ...formData, discountCode: e.target.value })}
+              placeholder="e.g., SAVE10"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="priceVerificationUrl">Price Verification URL</Label>
+            <Input
+              id="priceVerificationUrl"
+              type="url"
+              value={formData.priceVerificationUrl}
+              onChange={(e) => setFormData({ ...formData, priceVerificationUrl: e.target.value })}
+              placeholder="https://example.com/product"
+              disabled={isSubmitting}
+            />
+            {errors.priceVerificationUrl && (
+              <p className="text-sm text-destructive">{errors.priceVerificationUrl}</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="shippingOrigin">
-          Shipping Origin <span className="text-destructive">*</span>
-        </Label>
-        <Select
-          value={formData.shippingOrigin}
-          onValueChange={(value) => setFormData({ ...formData, shippingOrigin: value })}
-          disabled={isSubmitting}
-        >
-          <SelectTrigger id="shippingOrigin">
-            <SelectValue placeholder="Select origin" />
-          </SelectTrigger>
-          <SelectContent>
-            {SHIPPING_ORIGINS.map((origin) => (
-              <SelectItem key={origin} value={origin}>
-                {origin}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.shippingOrigin && (
-          <p className="text-sm text-destructive">{errors.shippingOrigin}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="vendorName">Vendor Name</Label>
-        <Input
-          id="vendorName"
-          value={formData.vendorName}
-          onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
-          placeholder="e.g., PeptideSciences"
-          disabled={isSubmitting}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="vendorUrl">Vendor URL</Label>
-        <Input
-          id="vendorUrl"
-          type="url"
-          value={formData.vendorUrl}
-          onChange={(e) => setFormData({ ...formData, vendorUrl: e.target.value })}
-          placeholder="https://example.com"
-          disabled={isSubmitting}
-        />
-        {errors.vendorUrl && (
-          <p className="text-sm text-destructive">{errors.vendorUrl}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="discountCode">Discount Code</Label>
-        <Input
-          id="discountCode"
-          value={formData.discountCode}
-          onChange={(e) => setFormData({ ...formData, discountCode: e.target.value })}
-          placeholder="e.g., SAVE10"
-          disabled={isSubmitting}
-        />
+      {/* Additional Info Section */}
+      <div className="space-y-4 pt-2 border-t">
+        <div className="space-y-2">
+          <Label htmlFor="userNotes">Notes</Label>
+          <Textarea
+            id="userNotes"
+            value={formData.userNotes}
+            onChange={(e) => setFormData({ ...formData, userNotes: e.target.value })}
+            placeholder="Additional notes about this pricing..."
+            rows={3}
+            disabled={isSubmitting}
+          />
+        </div>
       </div>
 
       {mode === 'create' && (

@@ -100,8 +100,8 @@ export const AdminPeptideLibrary = () => {
     const matchesCategory = categoryFilter === "all" || entry.category === categoryFilter;
     const matchesVisibility = 
       visibilityFilter === "all" ||
-      (visibilityFilter === "visible" && entry.is_visible) ||
-      (visibilityFilter === "hidden" && !entry.is_visible);
+      (visibilityFilter === "visible" && entry.isVisible) ||
+      (visibilityFilter === "hidden" && !entry.isVisible);
     return matchesSearch && matchesCategory && matchesVisibility;
   });
 
@@ -233,20 +233,20 @@ export const AdminPeptideLibrary = () => {
                     <TableCell>
                       <Badge variant="secondary">{entry.category}</Badge>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{entry.short_description}</TableCell>
+                    <TableCell className="max-w-xs truncate">{entry.shortDescription}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleToggleVisibility(entry.id, entry.is_visible)}
-                        className={`flex items-center gap-1 ${entry.is_visible ? 'text-green-500' : 'text-gray-500'}`}
+                        onClick={() => handleToggleVisibility(entry.id, entry.isVisible)}
+                        className={`flex items-center gap-1 ${entry.isVisible ? 'text-green-500' : 'text-gray-500'}`}
                       >
-                        {entry.is_visible ? (
+                        {entry.isVisible ? (
                           <Eye className="h-4 w-4" />
                         ) : (
                           <EyeOff className="h-4 w-4" />
                         )}
-                        {entry.is_visible ? 'Visible' : 'Hidden'}
+                        {entry.isVisible ? 'Visible' : 'Hidden'}
                       </Button>
                     </TableCell>
                     <TableCell className="text-right">

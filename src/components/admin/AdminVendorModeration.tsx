@@ -111,10 +111,14 @@ export const AdminVendorModeration = () => {
   const handleEdit = async (data: {
     peptideName: string;
     priceUsd: number;
+    shippingUsd: number;
+    size: string;
     shippingOrigin: string;
     vendorName?: string;
     vendorUrl?: string;
     discountCode?: string;
+    userNotes?: string;
+    priceVerificationUrl?: string;
   }) => {
     if (!selectedSubmission) return false;
     const success = await updateSubmission(selectedSubmission.id, data);
@@ -432,8 +436,20 @@ export const AdminVendorModeration = () => {
                   <p className="text-sm text-muted-foreground">{selectedSubmission.peptideName}</p>
                 </div>
                 <div>
+                  <p className="text-sm font-semibold mb-1">Size</p>
+                  <p className="text-sm text-muted-foreground">{selectedSubmission.size}</p>
+                </div>
+                <div>
                   <p className="text-sm font-semibold mb-1">Price (USD)</p>
                   <p className="text-sm text-primary font-semibold">${selectedSubmission.priceUsd.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold mb-1">Shipping Cost (USD)</p>
+                  <p className="text-sm text-muted-foreground">${selectedSubmission.shippingUsd.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold mb-1">Total Cost</p>
+                  <p className="text-sm text-primary font-semibold">${(selectedSubmission.priceUsd + selectedSubmission.shippingUsd).toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold mb-1">Shipping Origin</p>
@@ -473,6 +489,19 @@ export const AdminVendorModeration = () => {
                     <p className="text-sm text-muted-foreground">{selectedSubmission.discountCode}</p>
                   </div>
                 )}
+                {selectedSubmission.priceVerificationUrl && (
+                  <div>
+                    <p className="text-sm font-semibold mb-1">Price Verification URL</p>
+                    <a 
+                      href={selectedSubmission.priceVerificationUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {selectedSubmission.priceVerificationUrl}
+                    </a>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-semibold mb-1">Submitted</p>
                   <p className="text-sm text-muted-foreground">{formatDate(selectedSubmission.submittedAt)}</p>
@@ -490,6 +519,12 @@ export const AdminVendorModeration = () => {
                   </div>
                 )}
               </div>
+              {selectedSubmission.userNotes && (
+                <div>
+                  <p className="text-sm font-semibold mb-2">Notes</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedSubmission.userNotes}</p>
+                </div>
+              )}
               {selectedSubmission.screenshotUrl && (
                 <div>
                   <p className="text-sm font-semibold mb-2">Screenshot</p>
@@ -512,7 +547,7 @@ export const AdminVendorModeration = () => {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Vendor Price</DialogTitle>
             <DialogDescription>
@@ -531,7 +566,7 @@ export const AdminVendorModeration = () => {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Vendor Price</DialogTitle>
             <DialogDescription>

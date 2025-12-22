@@ -7,15 +7,15 @@ import type { PeptideLibraryFormData } from "@/types/peptide";
 interface ParsedPeptide {
   name: string;
   category: string;
-  short_description: string;
+  shortDescription: string;
   description: string;
   mechanism: string;
-  common_doses: string;
+  commonDoses: string;
   protocol: string;
-  side_effects: string;
+  sideEffects: string;
   warnings: string;
   interactions: string;
-  injection_areas: string;
+  injectionAreas: string;
 }
 
 interface ImportResult {
@@ -80,7 +80,7 @@ export function useBulkPeptideImport() {
       }
       
       // Create short description (first 200 chars)
-      const short_description = description.length > 200 
+      const shortDescription = description.length > 200 
         ? description.substring(0, 197) + '...' 
         : description;
       
@@ -89,7 +89,7 @@ export function useBulkPeptideImport() {
         l.includes('Commonly Reported Dosing') || 
         l.includes('Commonly Reported Dosing')
       );
-      let common_doses = '';
+      let commonDoses = '';
       if (dosesIndex !== -1) {
         const dosesLines: string[] = [];
         for (let i = dosesIndex + 1; i < lines.length; i++) {
@@ -100,7 +100,7 @@ export function useBulkPeptideImport() {
             dosesLines.push(lines[i].replace(/^•\s*/, '').trim());
           }
         }
-        common_doses = dosesLines.join('\n');
+        commonDoses = dosesLines.join('\n');
       }
       
       // Extract protocol
@@ -127,7 +127,7 @@ export function useBulkPeptideImport() {
         l.startsWith('Administration:') || 
         l.startsWith('Administration:')
       );
-      let injection_areas = '';
+      let injectionAreas = '';
       if (adminIndex !== -1) {
         const adminLines: string[] = [];
         for (let i = adminIndex + 1; i < lines.length; i++) {
@@ -138,7 +138,7 @@ export function useBulkPeptideImport() {
             adminLines.push(lines[i].replace(/^•\s*/, '').trim());
           }
         }
-        injection_areas = adminLines.join('\n');
+        injectionAreas = adminLines.join('\n');
       }
       
       // Extract notes (for side effects and interactions)
@@ -146,7 +146,7 @@ export function useBulkPeptideImport() {
         l.startsWith('Notes:') || 
         l.startsWith('Notes:')
       );
-      let side_effects = '';
+      let sideEffects = '';
       let interactions = '';
       if (notesIndex !== -1) {
         const notesLines: string[] = [];
@@ -163,7 +163,7 @@ export function useBulkPeptideImport() {
                 note.toLowerCase().includes('nausea') || 
                 note.toLowerCase().includes('discomfort') ||
                 note.toLowerCase().includes('sensitivity')) {
-              side_effects += (side_effects ? '\n' : '') + note;
+              sideEffects += (sideEffects ? '\n' : '') + note;
             }
             if (note.toLowerCase().includes('paired with') || 
                 note.toLowerCase().includes('combined') || 
@@ -174,8 +174,8 @@ export function useBulkPeptideImport() {
         }
         
         // If no specific categorization, use all notes as general info
-        if (!side_effects) {
-          side_effects = notesLines.slice(0, 2).join('\n');
+        if (!sideEffects) {
+          sideEffects = notesLines.slice(0, 2).join('\n');
         }
         if (!interactions) {
           interactions = notesLines.filter(n => 
@@ -221,15 +221,15 @@ export function useBulkPeptideImport() {
       peptides.push({
         name,
         category,
-        short_description,
+        shortDescription,
         description,
         mechanism: mechanism || description.split('.')[0] + '.',
-        common_doses: common_doses || 'Consult healthcare provider for appropriate dosing.',
+        commonDoses: commonDoses || 'Consult healthcare provider for appropriate dosing.',
         protocol: protocol || 'Follow healthcare provider guidance.',
-        side_effects: side_effects || 'Varies by individual. Consult healthcare provider.',
+        sideEffects: sideEffects || 'Varies by individual. Consult healthcare provider.',
         warnings: warnings || 'This information is for educational purposes only. Always consult a licensed healthcare professional.',
         interactions: interactions || 'May interact with other peptides or medications. Consult healthcare provider.',
-        injection_areas: injection_areas || 'Subcutaneous injection. Consult healthcare provider for proper administration.',
+        injectionAreas: injectionAreas || 'Subcutaneous injection. Consult healthcare provider for proper administration.',
       });
     }
     
@@ -287,12 +287,12 @@ export function useBulkPeptideImport() {
         }
 
         try {
-          const peptideData: PeptideLibraryFormData & { created_by: string; created_at: any; updated_at: any } = {
+          const peptideData: PeptideLibraryFormData & { createdBy: string; createdAt: any; updatedAt: any } = {
             ...peptide,
-            is_visible: true,
-            created_by: currentUser.uid,
-            created_at: serverTimestamp(),
-            updated_at: serverTimestamp(),
+            isVisible: true,
+            createdBy: currentUser.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
           };
 
           await addDoc(peptidesRef, peptideData);

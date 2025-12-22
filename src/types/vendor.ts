@@ -2,15 +2,20 @@ import { Timestamp } from "firebase/firestore";
 
 export interface VendorPriceSubmission {
   id: string;
+  userId: string;
   peptideId: string | null;
   peptideName: string;
   priceUsd: number;
+  shippingUsd: number;
+  size: string;
   shippingOrigin: string;
   vendorName?: string;
   vendorUrl?: string;
   discountCode?: string;
+  userNotes?: string;
   screenshotUrl?: string;
-  submittedBy?: string;
+  labTestResultsUrl?: string;
+  priceVerificationUrl?: string;
   submittedAt?: Timestamp;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   approvedBy?: string;
@@ -24,11 +29,16 @@ export interface VendorPriceSubmission {
 export interface VendorPriceFormData {
   peptideName: string;
   priceUsd: number;
+  shippingUsd: number;
+  size: string;
   shippingOrigin: string;
   vendorName?: string;
   vendorUrl?: string;
   discountCode?: string;
+  userNotes?: string;
   screenshot?: File;
+  labTestResults?: File;
+  priceVerificationUrl?: string;
 }
 
 export interface VendorPriceStats {

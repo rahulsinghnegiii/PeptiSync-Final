@@ -34,34 +34,34 @@ export interface PeptideLibraryEntry {
   id: string;
   name: string;
   category: string;
-  short_description: string;
+  shortDescription: string;
   description: string;
   mechanism: string;
-  common_doses: string;
+  commonDoses: string;
   protocol: string;
-  side_effects: string;
+  sideEffects: string;
   warnings: string;
   interactions: string;
-  injection_areas: string;
-  is_visible: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
-  created_by: string;
+  injectionAreas: string;
+  isVisible: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  createdBy: string;
 }
 
 export interface PeptideLibraryFormData {
   name: string;
   category: string;
-  short_description: string;
+  shortDescription: string;
   description: string;
   mechanism: string;
-  common_doses: string;
+  commonDoses: string;
   protocol: string;
-  side_effects: string;
+  sideEffects: string;
   warnings: string;
   interactions: string;
-  injection_areas: string;
-  is_visible: boolean;
+  injectionAreas: string;
+  isVisible: boolean;
 }
 
 // Categories

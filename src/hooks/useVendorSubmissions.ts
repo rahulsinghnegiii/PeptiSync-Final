@@ -21,15 +21,20 @@ const convertFirebaseData = (doc: any): VendorPriceSubmission => {
   const rawData = doc.data();
   return {
     id: doc.id,
-    peptideId: rawData.peptide_id || null,
+    userId: rawData.user_id?.id || rawData.submitted_by || "",
+    peptideId: rawData.peptide_id?.id || null,
     peptideName: rawData.peptide_name || "",
     priceUsd: rawData.price_usd || 0,
+    shippingUsd: rawData.shipping_usd || 0,
+    size: rawData.size || "",
     shippingOrigin: rawData.shipping_origin || "",
     vendorName: rawData.vendor_name || "",
     vendorUrl: rawData.vendor_url || "",
     discountCode: rawData.discount_code || "",
+    userNotes: rawData.user_notes || "",
     screenshotUrl: rawData.screenshot_url || "",
-    submittedBy: rawData.submitted_by || "",
+    labTestResultsUrl: rawData.lab_test_results_url || "",
+    priceVerificationUrl: rawData.price_verification_url || "",
     submittedAt: rawData.submitted_at,
     approvalStatus: rawData.approval_status || "pending",
     approvedBy: rawData.approved_by || "",
@@ -129,31 +134,51 @@ export function useAllVendorSubmissions(status?: 'pending' | 'approved' | 'rejec
 export function useSubmitVendorPrice() {
   const [submitting, setSubmitting] = useState(false);
 
-  const submitPrice = async (data: {
-    peptideName: string;
-    priceUsd: number;
-    shippingOrigin: string;
-    vendorName?: string;
-    vendorUrl?: string;
-    discountCode?: string;
-    screenshotUrl?: string;
-  }) => {
+  const submitPrice = async (
+    data: {
+      peptideName: string;
+      priceUsd: number;
+      shippingUsd: number;
+      size: string;
+      shippingOrigin: string;
+      vendorName?: string;
+      vendorUrl?: string;
+      discountCode?: string;
+      userNotes?: string;
+      screenshotUrl?: string;
+      labTestResultsUrl?: string;
+      priceVerificationUrl?: string;
+    },
+    userId: string
+  ) => {
     setSubmitting(true);
     try {
       const submissionsRef = collection(db, "vendor_pricing_submissions");
+      const userRef = doc(db, "users", userId);
+      
       await addDoc(submissionsRef, {
+        user_id: userRef,
+        peptide_id: null,
         peptide_name: data.peptideName,
-        price_usd: data.priceUsd,
-        shipping_origin: data.shippingOrigin,
         vendor_name: data.vendorName || "",
+        price_usd: data.priceUsd,
+        shipping_usd: data.shippingUsd,
+        size: data.size,
+        shipping_origin: data.shippingOrigin,
         vendor_url: data.vendorUrl || "",
         discount_code: data.discountCode || "",
+        user_notes: data.userNotes || "",
         screenshot_url: data.screenshotUrl || "",
-        submitted_at: serverTimestamp(),
+        lab_test_results_url: data.labTestResultsUrl || "",
+        price_verification_url: data.priceVerificationUrl || "",
         approval_status: "pending",
+        rejection_reason: null,
+        approved_by: null,
         auto_approved: false,
         verified_vendor: false,
         display_on_public: false,
+        submitted_at: serverTimestamp(),
+        reviewed_at: null,
       });
 
       toast.success("Vendor price submitted successfully! It will be reviewed by our team.");
@@ -178,9 +203,11 @@ export function useApproveSubmission() {
     setApproving(true);
     try {
       const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      const approverRef = doc(db, "users", userId);
+      
       await updateDoc(submissionRef, {
         approval_status: "approved",
-        approved_by: userId,
+        approved_by: approverRef,
         reviewed_at: serverTimestamp(),
         display_on_public: true,
       });
@@ -207,10 +234,12 @@ export function useRejectSubmission() {
     setRejecting(true);
     try {
       const submissionRef = doc(db, "vendor_pricing_submissions", submissionId);
+      const approverRef = doc(db, "users", userId);
+      
       await updateDoc(submissionRef, {
         approval_status: "rejected",
         rejection_reason: reason,
-        approved_by: userId,
+        approved_by: approverRef,
         reviewed_at: serverTimestamp(),
         display_on_public: false,
       });
@@ -288,10 +317,14 @@ export function useUpdateSubmission() {
     data: {
       peptideName: string;
       priceUsd: number;
+      shippingUsd: number;
+      size: string;
       shippingOrigin: string;
       vendorName?: string;
       vendorUrl?: string;
       discountCode?: string;
+      userNotes?: string;
+      priceVerificationUrl?: string;
     }
   ) => {
     setUpdating(true);
@@ -300,10 +333,14 @@ export function useUpdateSubmission() {
       await updateDoc(submissionRef, {
         peptide_name: data.peptideName,
         price_usd: data.priceUsd,
+        shipping_usd: data.shippingUsd,
+        size: data.size,
         shipping_origin: data.shippingOrigin,
         vendor_name: data.vendorName || "",
         vendor_url: data.vendorUrl || "",
         discount_code: data.discountCode || "",
+        user_notes: data.userNotes || "",
+        price_verification_url: data.priceVerificationUrl || "",
         updated_at: serverTimestamp(),
       });
 
@@ -329,34 +366,46 @@ export function useCreateAdminSubmission() {
     data: {
       peptideName: string;
       priceUsd: number;
+      shippingUsd: number;
+      size: string;
       shippingOrigin: string;
       vendorName?: string;
       vendorUrl?: string;
       discountCode?: string;
+      userNotes?: string;
+      priceVerificationUrl?: string;
       verifiedVendor?: boolean;
     },
     userId: string
   ) => {
     setCreating(true);
     try {
+      const userRef = doc(db, "users", userId);
+      const approverRef = doc(db, "users", userId);
+      
       const submissionData = {
+        user_id: userRef,
         peptide_id: null,
         peptide_name: data.peptideName,
-        price_usd: data.priceUsd,
-        shipping_origin: data.shippingOrigin,
         vendor_name: data.vendorName || "",
+        price_usd: data.priceUsd,
+        shipping_usd: data.shippingUsd,
+        size: data.size,
+        shipping_origin: data.shippingOrigin,
         vendor_url: data.vendorUrl || "",
         discount_code: data.discountCode || "",
+        user_notes: data.userNotes || "",
         screenshot_url: "",
-        submitted_by: userId,
-        submitted_at: serverTimestamp(),
-        approval_status: "approved", // Auto-approve admin submissions
-        approved_by: userId,
+        lab_test_results_url: "",
+        price_verification_url: data.priceVerificationUrl || "",
+        approval_status: "approved",
+        rejection_reason: null,
+        approved_by: approverRef,
         reviewed_at: serverTimestamp(),
-        rejection_reason: "",
         auto_approved: true,
         verified_vendor: data.verifiedVendor || false,
         display_on_public: true,
+        submitted_at: serverTimestamp(),
       };
 
       await addDoc(collection(db, "vendor_pricing_submissions"), submissionData);

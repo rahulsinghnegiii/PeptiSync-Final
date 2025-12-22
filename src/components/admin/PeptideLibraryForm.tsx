@@ -27,16 +27,16 @@ import { PEPTIDE_CATEGORIES } from "@/lib/constants";
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100, "Name must not exceed 100 characters."),
   category: z.string().min(1, "Please select a category."),
-  short_description: z.string().min(10, "Short description must be at least 10 characters.").max(200, "Short description must not exceed 200 characters."),
+  shortDescription: z.string().min(10, "Short description must be at least 10 characters.").max(200, "Short description must not exceed 200 characters."),
   description: z.string().min(50, "Description must be at least 50 characters."),
   mechanism: z.string().min(10, "Mechanism of action must be at least 10 characters."),
-  common_doses: z.string().min(5, "Common doses information is required."),
+  commonDoses: z.string().min(5, "Common doses information is required."),
   protocol: z.string().min(10, "Protocol information is required."),
-  side_effects: z.string().min(5, "Side effects information is required."),
+  sideEffects: z.string().min(5, "Side effects information is required."),
   warnings: z.string().min(5, "Warnings information is required."),
   interactions: z.string().min(5, "Interactions information is required."),
-  injection_areas: z.string().min(5, "Injection areas information is required."),
-  is_visible: z.boolean(),
+  injectionAreas: z.string().min(5, "Injection areas information is required."),
+  isVisible: z.boolean(),
 });
 
 interface PeptideLibraryFormProps {
@@ -51,21 +51,21 @@ export const PeptideLibraryForm = ({ initialData, onSuccess, onSubmitData }: Pep
     defaultValues: {
       name: initialData?.name || "",
       category: initialData?.category || "",
-      short_description: initialData?.short_description || "",
+      shortDescription: initialData?.shortDescription || "",
       description: initialData?.description || "",
       mechanism: initialData?.mechanism || "",
-      common_doses: initialData?.common_doses || "",
+      commonDoses: initialData?.commonDoses || "",
       protocol: initialData?.protocol || "",
-      side_effects: initialData?.side_effects || "",
+      sideEffects: initialData?.sideEffects || "",
       warnings: initialData?.warnings || "",
       interactions: initialData?.interactions || "",
-      injection_areas: initialData?.injection_areas || "",
-      is_visible: initialData?.is_visible || false,
+      injectionAreas: initialData?.injectionAreas || "",
+      isVisible: initialData?.isVisible || false,
     },
   });
 
   const { handleSubmit, control, watch, formState: { errors, isSubmitting } } = form;
-  const shortDescriptionLength = watch("short_description")?.length || 0;
+  const shortDescriptionLength = watch("shortDescription")?.length || 0;
 
   const onSubmit = async (data: PeptideLibraryFormData) => {
     const success = await onSubmitData(data);
@@ -118,7 +118,7 @@ export const PeptideLibraryForm = ({ initialData, onSuccess, onSubmitData }: Pep
 
         <FormField
           control={control}
-          name="short_description"
+          name="shortDescription"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Short Description</FormLabel>
@@ -163,7 +163,7 @@ export const PeptideLibraryForm = ({ initialData, onSuccess, onSubmitData }: Pep
 
         <FormField
           control={control}
-          name="common_doses"
+          name="commonDoses"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Common Doses</FormLabel>
@@ -191,7 +191,7 @@ export const PeptideLibraryForm = ({ initialData, onSuccess, onSubmitData }: Pep
 
         <FormField
           control={control}
-          name="side_effects"
+          name="sideEffects"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Side Effects</FormLabel>
@@ -233,7 +233,7 @@ export const PeptideLibraryForm = ({ initialData, onSuccess, onSubmitData }: Pep
 
         <FormField
           control={control}
-          name="injection_areas"
+          name="injectionAreas"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Injection Areas</FormLabel>
@@ -247,7 +247,7 @@ export const PeptideLibraryForm = ({ initialData, onSuccess, onSubmitData }: Pep
 
         <FormField
           control={control}
-          name="is_visible"
+          name="isVisible"
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">

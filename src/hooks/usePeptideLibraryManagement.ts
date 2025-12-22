@@ -44,12 +44,27 @@ export function usePeptideLibraryManagement(): UsePeptideLibraryManagementResult
       const libraryRef = collection(db, COLLECTION_NAME);
       const q = query(libraryRef, orderBy("name", "asc"));
       const snapshot = await getDocs(q);
-      const libraryData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        created_at: doc.data().created_at instanceof Timestamp ? doc.data().created_at : new Timestamp(0, 0),
-        updated_at: doc.data().updated_at instanceof Timestamp ? doc.data().updated_at : new Timestamp(0, 0),
-      })) as PeptideLibraryEntry[];
+      const libraryData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || '',
+          category: data.category || '',
+          shortDescription: data.shortDescription || '',
+          description: data.description || '',
+          mechanism: data.mechanism || '',
+          commonDoses: data.commonDoses || '',
+          protocol: data.protocol || '',
+          sideEffects: data.sideEffects || '',
+          warnings: data.warnings || '',
+          interactions: data.interactions || '',
+          injectionAreas: data.injectionAreas || '',
+          isVisible: data.isVisible ?? true,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt : new Timestamp(0, 0),
+          updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : new Timestamp(0, 0),
+          createdBy: data.createdBy || '',
+        } as PeptideLibraryEntry;
+      });
       setLibraryEntries(libraryData);
     } catch (err) {
       console.error("Error fetching library entries:", err);
@@ -72,9 +87,21 @@ export function usePeptideLibraryManagement(): UsePeptideLibraryManagementResult
         const data = entrySnap.data();
         return {
           id: entrySnap.id,
-          ...data,
-          created_at: data.created_at instanceof Timestamp ? data.created_at : new Timestamp(0, 0),
-          updated_at: data.updated_at instanceof Timestamp ? data.updated_at : new Timestamp(0, 0),
+          name: data.name || '',
+          category: data.category || '',
+          shortDescription: data.shortDescription || '',
+          description: data.description || '',
+          mechanism: data.mechanism || '',
+          commonDoses: data.commonDoses || '',
+          protocol: data.protocol || '',
+          sideEffects: data.sideEffects || '',
+          warnings: data.warnings || '',
+          interactions: data.interactions || '',
+          injectionAreas: data.injectionAreas || '',
+          isVisible: data.isVisible ?? true,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt : new Timestamp(0, 0),
+          updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt : new Timestamp(0, 0),
+          createdBy: data.createdBy || '',
         } as PeptideLibraryEntry;
       }
       return null;
@@ -95,9 +122,9 @@ export function usePeptideLibraryManagement(): UsePeptideLibraryManagementResult
     try {
       const newEntry = {
         ...data,
-        created_by: currentUser.uid,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
+        createdBy: currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
       await addDoc(collection(db, COLLECTION_NAME), newEntry);
       toast.success("Library entry created successfully!");
@@ -115,7 +142,7 @@ export function usePeptideLibraryManagement(): UsePeptideLibraryManagementResult
       const entryRef = doc(db, COLLECTION_NAME, id);
       const updatedData = {
         ...data,
-        updated_at: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
       await updateDoc(entryRef, updatedData);
       toast.success("Library entry updated successfully!");
@@ -147,8 +174,8 @@ export function usePeptideLibraryManagement(): UsePeptideLibraryManagementResult
       const entryRef = doc(db, COLLECTION_NAME, id);
       const newVisibility = !currentVisibility;
       await updateDoc(entryRef, {
-        is_visible: newVisibility,
-        updated_at: serverTimestamp(),
+        isVisible: newVisibility,
+        updatedAt: serverTimestamp(),
       });
       toast.success(`Library entry ${newVisibility ? 'visible' : 'hidden'} successfully!`);
       fetchLibraryEntries();
