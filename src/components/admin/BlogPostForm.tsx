@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -226,31 +226,32 @@ export const BlogPostForm = ({ initialData, onSubmit, onCancel, isLoading }: Blo
           {/* Excerpt */}
           <div className="space-y-2">
             <Label htmlFor="excerpt">Excerpt *</Label>
-            <Textarea
-              id="excerpt"
+            <RichTextEditor
               value={formData.excerpt}
-              onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+              onChange={(value) => setFormData(prev => ({ ...prev, excerpt: value }))}
               placeholder="Brief summary of the post"
-              rows={3}
-              className={errors.excerpt ? 'border-destructive' : ''}
+              minHeight="120px"
+              error={!!errors.excerpt}
+              showCharacterCount={true}
+              maxCharacters={300}
+              toolbarVariant="basic"
             />
             {errors.excerpt && <p className="text-sm text-destructive">{errors.excerpt}</p>}
-            <p className="text-xs text-muted-foreground">{formData.excerpt.length}/300 characters</p>
           </div>
 
           {/* Content */}
           <div className="space-y-2">
             <Label htmlFor="content">Content *</Label>
-            <Textarea
-              id="content"
+            <RichTextEditor
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Write your post content here... (Markdown supported)"
-              rows={15}
-              className={errors.content ? 'border-destructive' : ''}
+              onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+              placeholder="Write your post content here..."
+              minHeight="400px"
+              error={!!errors.content}
+              showCharacterCount={true}
+              toolbarVariant="full"
             />
             {errors.content && <p className="text-sm text-destructive">{errors.content}</p>}
-            <p className="text-xs text-muted-foreground">{formData.content.length} characters (min 100)</p>
           </div>
 
           {/* Category */}
