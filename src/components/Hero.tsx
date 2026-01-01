@@ -4,7 +4,7 @@ import { ArrowRight, Download, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppStoreButtons } from "@/components/AppStoreButtons";
 import heroBg from "@/assets/hero-bg.jpg";
-import appPreview from "@/assets/app-preview.jpg";
+import appPreview from "@/assets/app-preview.png";
 
 const Hero = () => {
   return (

@@ -9,12 +9,11 @@ import {
   Smartphone, 
   Download as DownloadIcon, 
   Check, 
-  QrCode,
   Apple,
   Monitor
 } from "lucide-react";
 import { APP_LINKS } from "@/lib/constants";
-import appPreview from "@/assets/app-preview.jpg";
+import appPreview from "@/assets/app-preview.png";
 
 const Download = () => {
   const features = [
@@ -73,16 +72,28 @@ const Download = () => {
 
                 <div className="grid md:grid-cols-2 gap-6 mt-12">
                   <div className="text-center">
-                    <div className="w-48 h-48 mx-auto bg-white rounded-2xl p-4 flex items-center justify-center">
-                      <QrCode className="w-full h-full text-gray-800" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-4">Scan for iOS</p>
+                    <a href={APP_LINKS.appStore} target="_blank" rel="noopener noreferrer">
+                      <div className="w-48 h-48 mx-auto bg-white rounded-2xl p-4 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+                        <img 
+                          src="/app-qr-code.png" 
+                          alt="QR Code for PeptiSync App Store" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-4">Scan for iOS</p>
+                    </a>
                   </div>
                   <div className="text-center">
-                    <div className="w-48 h-48 mx-auto bg-white rounded-2xl p-4 flex items-center justify-center">
-                      <QrCode className="w-full h-full text-gray-800" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-4">Scan for Android</p>
+                    <a href={APP_LINKS.googlePlay} target="_blank" rel="noopener noreferrer">
+                      <div className="w-48 h-48 mx-auto bg-white rounded-2xl p-4 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer">
+                        <img 
+                          src="/app-qr-code.png" 
+                          alt="QR Code for PeptiSync Google Play" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-4">Scan for Android</p>
+                    </a>
                   </div>
                 </div>
               </CardContent>

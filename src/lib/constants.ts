@@ -20,8 +20,8 @@ export const CONTACT_INFO = {
 };
 
 export const APP_LINKS = {
-  appStore: "https://apps.apple.com/app/peptisync",
-  googlePlay: "https://play.google.com/store/apps/details?id=com.peptisync",
+  appStore: "https://apps.apple.com/us/app/peptisync/id6754933334",
+  googlePlay: "https://play.google.com/store/apps/details?id=com.peptisync.app&pcampaignid=web_share",
   website: "https://peptisync.com",
 };
 
