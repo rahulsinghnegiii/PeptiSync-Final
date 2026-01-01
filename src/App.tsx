@@ -57,6 +57,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Download = lazy(() => import("./pages/Download"));
 const VendorPricing = lazy(() => import("./pages/VendorPricing"));
+const VendorComparison = lazy(() => import("./pages/VendorComparison"));
 // Legal pages
 const TermsOfUse = lazy(() => import("./pages/legal/TermsOfUse"));
 const LegalPrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
@@ -153,6 +154,7 @@ const App = () => {
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/download" element={<Download />} />
                   <Route path="/vendor-pricing" element={<VendorPricing />} />
+                  <Route path="/vendor-comparison" element={<VendorComparison />} />
                   {/* Legal pages */}
                   <Route path="/legal/terms" element={<TermsOfUse />} />
                   <Route path="/legal/privacy" element={<LegalPrivacyPolicy />} />
@@ -160,6 +162,7 @@ const App = () => {
                   <Route path="/legal/cookies" element={<CookiePolicy />} />
                   {/* Auth routes - Guest only */}
                   <Route path="/auth" element={<GuestOnly><Auth /></GuestOnly>} />
+                  <Route path="/login" element={<GuestOnly><Auth /></GuestOnly>} /> {/* Alias for /auth */}
                   <Route path="/reset-password" element={<GuestOnly><ResetPassword /></GuestOnly>} />
                   <Route path="/update-password" element={<UpdatePassword />} />
                   {/* Protected routes - Require authentication */}

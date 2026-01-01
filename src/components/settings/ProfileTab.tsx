@@ -16,6 +16,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { COLLECTIONS } from "@/lib/firestoreHelpers";
 import { toast } from "sonner";
 import { Profile } from "@/pages/Settings";
+import ImageCropDialog from "./ImageCropDialog";
 
 const profileSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,6 +34,9 @@ interface ProfileTabProps {
 const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
   const [uploading, setUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const {
     register,
@@ -47,38 +51,7 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
     },
   });
 
-  const resizeImage = (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = 200;
-          canvas.height = 200;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            reject(new Error("Failed to get canvas context"));
-            return;
-          }
-          ctx.drawImage(img, 0, 0, 200, 200);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error("Failed to create blob"));
-            }
-          }, "image/jpeg", 0.9);
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -94,21 +67,29 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
       return;
     }
 
+    // Create preview URL for cropper
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageUrl(imageUrl);
+    setSelectedFile(file);
+    setCropDialogOpen(true);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!selectedFile) return;
+
     setUploading(true);
+    setCropDialogOpen(false);
 
     try {
-      // Resize image to 200x200
-      const resizedBlob = await resizeImage(file);
-
       // Generate unique filename
-      const fileExt = file.name.split(".").pop();
+      const fileExt = selectedFile.name.split(".").pop();
       const fileName = `${profile.uid}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       // Upload to Firebase Storage
       const storageRef = ref(storage, filePath);
-      await uploadBytes(storageRef, resizedBlob, {
-        contentType: file.type,
+      await uploadBytes(storageRef, croppedBlob, {
+        contentType: "image/jpeg",
         cacheControl: "public, max-age=3600",
       });
 
@@ -131,6 +112,10 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
       toast.error("Failed to upload avatar");
     } finally {
       setUploading(false);
+      // Clean up
+      URL.revokeObjectURL(selectedImageUrl);
+      setSelectedImageUrl("");
+      setSelectedFile(null);
     }
   };
 
@@ -205,11 +190,11 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="hidden"
-                onChange={handleAvatarUpload}
+                onChange={handleAvatarSelect}
                 disabled={uploading}
               />
               <p className="text-xs text-muted-foreground mt-2">
-                JPG, PNG or WebP. Max 5MB. Will be resized to 200x200px.
+                JPG, PNG or WebP. Max 5MB. You'll be able to crop before uploading.
               </p>
             </div>
           </div>
@@ -284,6 +269,19 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
           </form>
         </CardContent>
       </Card>
+
+      {/* Image Crop Dialog */}
+      <ImageCropDialog
+        open={cropDialogOpen}
+        imageUrl={selectedImageUrl}
+        onCropComplete={handleCropComplete}
+        onClose={() => {
+          setCropDialogOpen(false);
+          URL.revokeObjectURL(selectedImageUrl);
+          setSelectedImageUrl("");
+          setSelectedFile(null);
+        }}
+      />
     </motion.div>
   );
 };

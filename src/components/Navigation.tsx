@@ -1,14 +1,17 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Lock } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
+import { LoginPromptDialog } from "./LoginPromptDialog";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
@@ -18,12 +21,19 @@ const Navigation = () => {
     }
   };
 
+  const handleVendorComparisonClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      setShowLoginPrompt(true);
+    }
+  };
+
   const navItems = [
-    { name: "Features", href: "/features" },
-    { name: "About", href: "/about" },
-    { name: "Blog", href: "/blog" },
-    { name: "Vendor Pricing", href: "/vendor-pricing" },
-    { name: "Download", href: "/download" },
+    { name: "Features", href: "/features", requiresAuth: false },
+    { name: "About", href: "/about", requiresAuth: false },
+    { name: "Blog", href: "/blog", requiresAuth: false },
+    { name: "Vendor Comparison", href: "/vendor-comparison", requiresAuth: true },
+    { name: "Download", href: "/download", requiresAuth: false },
   ];
 
   return (
@@ -57,9 +67,13 @@ const Navigation = () => {
               <motion.li key={item.name}>
                 <Link
                   to={item.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium"
+                  onClick={item.requiresAuth ? handleVendorComparisonClick : undefined}
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium flex items-center gap-1"
                 >
                   {item.name}
+                  {item.requiresAuth && !user && (
+                    <Lock className="w-3 h-3 text-muted-foreground/50" />
+                  )}
                 </Link>
               </motion.li>
             ))}
@@ -124,10 +138,18 @@ const Navigation = () => {
                 <li key={item.name}>
                   <Link
                     to={item.href}
-                    className="block text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium"
-                    onClick={() => setIsOpen(false)}
+                    className="block text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium flex items-center gap-2"
+                    onClick={(e) => {
+                      if (item.requiresAuth) {
+                        handleVendorComparisonClick(e);
+                      }
+                      setIsOpen(false);
+                    }}
                   >
                     {item.name}
+                    {item.requiresAuth && !user && (
+                      <Lock className="w-3 h-3 text-muted-foreground/50" />
+                    )}
                   </Link>
                 </li>
               ))}
@@ -165,6 +187,13 @@ const Navigation = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Login Prompt Dialog */}
+      <LoginPromptDialog
+        open={showLoginPrompt}
+        onOpenChange={setShowLoginPrompt}
+        featureName="Vendor Comparison"
+      />
     </motion.nav>
   );
 };

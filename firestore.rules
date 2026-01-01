@@ -81,6 +81,58 @@ service cloud.firestore {
     match /emailPreferences/{userId} {
       allow read, write: if isOwner(userId);
     }
+    
+    // ========================================================================
+    // BLOG POSTS COLLECTION
+    // ========================================================================
+    
+    // Blog posts (public can read published, admins can manage all)
+    match /blog_posts/{postId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ========================================================================
+    // VENDOR COMPARISON V1 COLLECTIONS (AUTH REQUIRED)
+    // ========================================================================
+    
+    // Vendors collection (master vendor directory)
+    match /vendors/{vendorId} {
+      allow read: if isAuthenticated(); // Auth required for comparison pages
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Vendor offers collection (tier-specific pricing)
+    match /vendor_offers/{offerId} {
+      allow read: if isAuthenticated(); // Auth required for comparison pages
+      allow create: if isAuthenticated(); // Users can submit (for future community feature)
+      allow update, delete: if isAdmin();
+    }
+    
+    // Tier 3 reference pricing (admin-editable brand GLP reference)
+    match /tier3_reference_pricing/{pricingId} {
+      allow read: if isAuthenticated(); // Auth required for comparison pages
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Vendor price uploads (upload tracking and processing)
+    match /vendor_price_uploads/{uploadId} {
+      allow read: if isOwner(resource.data.uploaded_by) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uploaded_by == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Vendor offer price history (tracks price changes over time)
+    match /vendor_offer_price_history/{historyId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Vendor automation jobs (V1: timestamp updates only)
+    match /vendor_automation_jobs/{jobId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
   }
 }
 

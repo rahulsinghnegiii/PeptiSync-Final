@@ -69,6 +69,9 @@ export const RichTextEditor = ({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
+        // Disable link and underline from StarterKit since we're adding them separately with custom config
+        link: false,
+        underline: false,
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],

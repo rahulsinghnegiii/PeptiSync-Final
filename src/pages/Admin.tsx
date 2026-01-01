@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, TrendingUp, DollarSign, BookOpen, Pill } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, DollarSign, BookOpen, Pill, ShoppingCart } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminVendorModeration } from "@/components/admin/AdminVendorModeration";
 import { AdminBlogPosts } from "@/components/admin/AdminBlogPosts";
 import { AdminPeptideManagement } from "@/components/admin/AdminPeptideManagement";
+import { AdminVendorComparison } from "@/components/admin/AdminVendorComparison";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { useNavigate } from "react-router-dom";
 
@@ -34,7 +35,7 @@ const Admin = () => {
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <Tabs defaultValue="analytics" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Analytics
@@ -53,7 +54,11 @@ const Admin = () => {
               </TabsTrigger>
               <TabsTrigger value="vendor-moderation" className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
-                Vendors
+                Vendors (Legacy)
+              </TabsTrigger>
+              <TabsTrigger value="vendor-comparison" className="flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                Vendor Comparison
               </TabsTrigger>
             </TabsList>
 
@@ -75,6 +80,10 @@ const Admin = () => {
 
             <TabsContent value="vendor-moderation">
               <AdminVendorModeration />
+            </TabsContent>
+
+            <TabsContent value="vendor-comparison">
+              <AdminVendorComparison />
             </TabsContent>
           </Tabs>
         </main>
