@@ -10,7 +10,7 @@ export const COMPANY_INFO = {
   privacyEmail: "privacy@peptisync.com",
   responseTime: "24-48 hours",
   address: "United States",
-  foundedYear: 2024,
+  foundedYear: 2025,
 };
 
 export const CONTACT_INFO = {

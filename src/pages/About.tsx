@@ -58,20 +58,25 @@ const About = () => {
                     <h2 className="text-3xl font-bold mb-6">Why We Built PeptiSync</h2>
                     <div className="space-y-4 text-muted-foreground">
                       <p>
-                        PeptiSync was born from a simple frustration: there was no comprehensive, 
-                        user-friendly way to track peptide protocols. As peptide therapy gained 
-                        popularity in the health and wellness community, we saw countless individuals 
-                        struggling with spreadsheets, notebooks, and scattered information.
+                        PeptiSync was born out of a simple frustration: there wasn't an easy, all-in-one 
+                        way to track peptide protocols.
                       </p>
                       <p>
-                        We knew there had to be a better way. A platform that could not only track 
-                        dosing schedules and injection sites but also provide insights, compare vendor 
-                        prices, and help users optimize their protocols based on real data.
+                        As peptide use grew within the health and wellness space, we saw people relying 
+                        on spreadsheets, notebooks, and scattered notes just to stay organized. Tracking 
+                        doses, schedules, and injection sites felt unnecessarily complicated — and 
+                        important insights were getting lost along the way.
                       </p>
                       <p>
-                        Today, PeptiSync serves thousands of users worldwide, from biohackers and 
-                        athletes to wellness enthusiasts, all seeking to optimize their health through 
-                        peptide therapy. We're proud to be the leading platform in this space.
+                        We knew there had to be a better solution. One platform that could not only 
+                        simplify tracking, but also provide meaningful insights, compare vendor pricing, 
+                        and help users make more informed decisions based on real data.
+                      </p>
+                      <p>
+                        Today, PeptiSync supports a growing global community of wellness enthusiasts, 
+                        biohackers, and athletes — all focused on optimizing their health with clarity 
+                        and confidence. We're proud to be building a smarter, more intuitive platform 
+                        for this evolving space.
                       </p>
                     </div>
                   </div>
@@ -82,7 +87,7 @@ const About = () => {
                         <div className="w-32 h-32 mx-auto mb-6 rounded-full gradient-primary flex items-center justify-center">
                           <Users className="w-16 h-16 text-white" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">Founded 2024</h3>
+                        <h3 className="text-2xl font-bold mb-2">Founded 2025</h3>
                         <p className="text-muted-foreground">
                           Built by health enthusiasts,<br />for health enthusiasts
                         </p>

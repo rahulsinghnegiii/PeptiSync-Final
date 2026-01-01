@@ -6,11 +6,11 @@
  * Sort: By price per mg or alphabetically
  * 
  * Phase 6: Public Comparison Pages
+ * Updated: Dual-view support (peptide-first and vendor-first)
  */
 
 import { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,23 +20,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { ExternalLink, TrendingDown, TrendingUp, CheckCircle } from 'lucide-react';
+import { TrendingDown, TrendingUp, CheckCircle } from 'lucide-react';
 import { useVendorOffers } from '@/hooks/useVendorOffers';
 import { useVendors } from '@/hooks/useVendors';
+import { ViewToggle, type ViewMode } from './ViewToggle';
+import { PeptideGroupedView } from './PeptideGroupedView';
+import { VendorTableView } from './VendorTableView';
 
 type SortOption = 'price_asc' | 'price_desc' | 'alphabetical';
 
 export const ResearchPeptideComparison = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('price_asc');
+  const [viewMode, setViewMode] = useState<ViewMode>('peptide');
   
   // Fetch verified offers only
   const { offers, loading } = useVendorOffers('research', undefined, undefined, 'verified');
@@ -51,8 +47,13 @@ export const ResearchPeptideComparison = () => {
     return Array.from(peptides).sort();
   }, [offers]);
 
-  // Filter and sort offers
+  // Filter and sort offers (only for vendor view)
   const filteredOffers = useMemo(() => {
+    // Skip filtering in peptide view (handled by PeptideGroupedView)
+    if (viewMode === 'peptide') {
+      return offers;
+    }
+
     let filtered = offers.filter((offer) => {
       const vendor = getVendor(offer.vendor_id);
       const matchesSearch =
@@ -61,7 +62,7 @@ export const ResearchPeptideComparison = () => {
       return matchesSearch;
     });
 
-    // Sort
+    // Sort (only applies to vendor view)
     filtered.sort((a, b) => {
       if (sortBy === 'price_asc') {
         return (a.research_pricing?.price_per_mg || 0) - (b.research_pricing?.price_per_mg || 0);
@@ -76,7 +77,7 @@ export const ResearchPeptideComparison = () => {
     });
 
     return filtered;
-  }, [offers, vendors, searchQuery, sortBy]);
+  }, [offers, vendors, searchQuery, sortBy, viewMode]);
 
   // Find best price for each peptide (for highlighting)
   const bestPrices = useMemo(() => {
@@ -119,34 +120,39 @@ export const ResearchPeptideComparison = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="w-full md:w-[220px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="price_asc">
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="w-4 h-4" />
-                    Lowest $/mg First
-                  </div>
-                </SelectItem>
-                <SelectItem value="price_desc">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    Highest $/mg First
-                  </div>
-                </SelectItem>
-                <SelectItem value="alphabetical">Alphabetical (Vendor)</SelectItem>
-              </SelectContent>
-            </Select>
+            {viewMode === 'vendor' && (
+              <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                <SelectTrigger className="w-full md:w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="price_asc">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="w-4 h-4" />
+                      Lowest $/mg First
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="price_desc">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      Highest $/mg First
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="alphabetical">Alphabetical (Vendor)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
 
+      {/* View Toggle */}
+      <ViewToggle view={viewMode} onViewChange={setViewMode} />
+
       {/* Results Info */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {filteredOffers.length} verified offer{filteredOffers.length !== 1 ? 's' : ''}
+          Showing {viewMode === 'peptide' ? uniquePeptides.length : filteredOffers.length} {viewMode === 'peptide' ? 'peptide' : 'verified offer'}{(viewMode === 'peptide' ? uniquePeptides.length : filteredOffers.length) !== 1 ? 's' : ''}
         </p>
         <Badge variant="outline" className="flex items-center gap-1">
           <CheckCircle className="w-3 h-3" />
@@ -154,103 +160,20 @@ export const ResearchPeptideComparison = () => {
         </Badge>
       </div>
 
-      {/* Comparison Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Research Peptide Vendors — Pricing Verified (Beta)</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Primary comparison metric: Price per milligram ($/mg)
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Peptide</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>$/mg</TableHead>
-                  <TableHead>Shipping</TableHead>
-                  <TableHead>Lab Test</TableHead>
-                  <TableHead className="text-right">Link</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOffers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                      No offers found. Try adjusting your search.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredOffers.map((offer) => {
-                    const vendor = getVendor(offer.vendor_id);
-                    const pricing = offer.research_pricing;
-                    if (!pricing) return null;
-
-                    const bestPrice = isBestPrice(offer.peptide_name, pricing.price_per_mg);
-
-                    return (
-                      <TableRow 
-                        key={offer.id} 
-                        className={bestPrice ? 'bg-green-50/50 hover:bg-green-100/50' : 'hover:bg-muted/50'}
-                      >
-                        <TableCell className="font-medium">
-                          {vendor?.name || 'Unknown'}
-                          {vendor?.verified && (
-                            <CheckCircle className="w-3 h-3 inline ml-1 text-green-600" />
-                          )}
-                        </TableCell>
-                        <TableCell>{offer.peptide_name}</TableCell>
-                        <TableCell>{pricing.size_mg} mg</TableCell>
-                        <TableCell>${pricing.price_usd.toFixed(2)}</TableCell>
-                        <TableCell className="font-semibold">
-                          ${pricing.price_per_mg.toFixed(2)}/mg
-                          {bestPrice && (
-                            <Badge variant="default" className="ml-2 bg-green-600 text-xs">
-                              Best
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>${pricing.shipping_usd.toFixed(2)}</TableCell>
-                        <TableCell>
-                          {pricing.lab_test_url ? (
-                            <a
-                              href={pricing.lab_test_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline text-xs"
-                            >
-                              View
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {vendor?.website_url && (
-                            <Button variant="ghost" size="sm" asChild>
-                              <a
-                                href={vendor.website_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Conditional View Rendering */}
+      {viewMode === 'peptide' ? (
+        <PeptideGroupedView 
+          offers={offers}
+          vendors={vendors}
+          searchQuery={searchQuery}
+        />
+      ) : (
+        <VendorTableView
+          offers={filteredOffers}
+          vendors={vendors}
+          isBestPrice={isBestPrice}
+        />
+      )}
 
       {/* Tier-Specific Notes */}
       <Card className="bg-muted/50">
