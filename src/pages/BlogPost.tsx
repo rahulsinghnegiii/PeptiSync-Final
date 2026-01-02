@@ -154,7 +154,7 @@ const BlogPost = () => {
             <Card className="glass border-glass-border">
               <CardContent className="p-8 lg:p-12">
                 <div 
-                  className="prose prose-lg dark:prose-invert max-w-none prose-p:mb-4 prose-headings:font-semibold prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-blockquote:my-4 prose-pre:my-4 whitespace-pre-wrap"
+                  className="prose prose-lg dark:prose-invert max-w-none prose-p:mb-4 prose-headings:font-semibold prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-blockquote:my-4 prose-pre:my-4 whitespace-pre-wrap [&_p:empty]:min-h-[1.5em] [&_br]:block [&_br]:content-[''] [&_br]:my-2"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
               </CardContent>
