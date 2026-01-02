@@ -1,20 +1,22 @@
 /**
- * Vendor Comparison Page (Auth Required)
+ * Vendor Comparison Page (Pro+ Feature)
  * 
- * Authenticated comparison interface for all three tiers
- * Phase 6: Public Comparison Pages
+ * Premium subscription feature for Pro+ and Elite tier members
+ * Requires authentication and Pro+ subscription or higher
  * 
  * Features:
  * - Tier-based tabbed navigation
  * - Verified offers only
  * - Tier-specific sorting and display
  * - No cross-tier math or comparisons
- * - Requires user authentication
+ * - Requires user authentication AND Pro+ subscription
  */
 
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureLockedCard } from '@/components/FeatureLockedCard';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,17 +24,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { InfoIcon, ArrowLeft, Lock } from 'lucide-react';
+import { InfoIcon, ArrowLeft } from 'lucide-react';
 import { ResearchPeptideComparison } from '@/components/comparison/ResearchPeptideComparison';
 import { TelehealthComparison } from '@/components/comparison/TelehealthComparison';
 import { BrandGLPComparison } from '@/components/comparison/BrandGLPComparison';
 
 export default function VendorComparison() {
   const { user, loading } = useAuth();
+  const { planTier, loading: subscriptionLoading, hasFeature } = useSubscription();
   const [activeTab, setActiveTab] = useState<'research' | 'telehealth' | 'brand'>('research');
 
-  // Show loading state while checking auth
-  if (loading) {
+  // Show loading state while checking auth and subscription
+  if (loading || subscriptionLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -46,6 +49,17 @@ export default function VendorComparison() {
   // Redirect to login page if not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check if user has Pro+ subscription or higher (vendor_pricing feature)
+  if (!hasFeature('vendor_pricing')) {
+    return (
+      <FeatureLockedCard
+        featureName="Vendor Price Comparison"
+        requiredPlan="pro_plus"
+        currentPlan={planTier}
+      />
+    );
   }
 
   return (

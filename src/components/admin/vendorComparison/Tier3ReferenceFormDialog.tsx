@@ -101,7 +101,7 @@ export const Tier3ReferenceFormDialog = ({
         product_url: reference.product_url || '',
         glp_type: reference.glp_type,
         dose_strength: reference.brand_pricing?.dose_strength || '',
-        price_per_dose_usd: reference.brand_pricing?.price_per_dose_usd.toString() || '',
+        price_per_dose_usd: reference.brand_pricing?.price_per_dose.toString() || '',
         doses_per_package: reference.brand_pricing?.doses_per_package?.toString() || '',
         pricing_source: reference.pricing_source || 'manufacturer_msrp',
         notes: reference.notes || '',
@@ -120,7 +120,7 @@ export const Tier3ReferenceFormDialog = ({
       pricing_source: data.pricing_source,
       notes: data.notes,
       brand_pricing: {
-        price_per_dose_usd: parseFloat(data.price_per_dose_usd),
+        price_per_dose: parseFloat(data.price_per_dose_usd),
         doses_per_package: parseInt(data.doses_per_package),
         dose_strength: data.dose_strength,
         product_url: data.product_url || undefined,

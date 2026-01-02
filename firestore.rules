@@ -93,25 +93,27 @@ service cloud.firestore {
     }
     
     // ========================================================================
-    // VENDOR COMPARISON V1 COLLECTIONS (AUTH REQUIRED)
+    // VENDOR COMPARISON V1 COLLECTIONS (PRO+ FEATURE - AUTH REQUIRED)
     // ========================================================================
+    // Note: Application-level checks enforce Pro+ subscription requirement.
+    // Firestore rules enforce authentication as a baseline security measure.
     
     // Vendors collection (master vendor directory)
     match /vendors/{vendorId} {
-      allow read: if isAuthenticated(); // Auth required for comparison pages
+      allow read: if isAuthenticated(); // Auth required, Pro+ checked in app
       allow create, update, delete: if isAdmin();
     }
     
     // Vendor offers collection (tier-specific pricing)
     match /vendor_offers/{offerId} {
-      allow read: if isAuthenticated(); // Auth required for comparison pages
+      allow read: if isAuthenticated(); // Auth required, Pro+ checked in app
       allow create: if isAuthenticated(); // Users can submit (for future community feature)
       allow update, delete: if isAdmin();
     }
     
     // Tier 3 reference pricing (admin-editable brand GLP reference)
     match /tier3_reference_pricing/{pricingId} {
-      allow read: if isAuthenticated(); // Auth required for comparison pages
+      allow read: if isAuthenticated(); // Auth required, Pro+ checked in app
       allow create, update, delete: if isAdmin();
     }
     

@@ -39,6 +39,7 @@ import {
   Table as TableIcon,
   Highlighter,
   RemoveFormatting,
+  CornerDownLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -72,6 +73,16 @@ export const RichTextEditor = ({
         // Disable link and underline from StarterKit since we're adding them separately with custom config
         link: false,
         underline: false,
+        // Enable hard breaks to preserve line breaks (Shift+Enter)
+        hardBreak: {
+          keepMarks: true,
+        },
+        // Configure paragraph behavior to preserve spacing
+        paragraph: {
+          HTMLAttributes: {
+            class: 'mb-4',
+          },
+        },
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -119,8 +130,9 @@ export const RichTextEditor = ({
       attributes: {
         class: cn(
           'prose prose-sm dark:prose-invert max-w-none focus:outline-none px-4 py-3',
-          'prose-headings:font-semibold prose-p:my-2 prose-ul:my-2 prose-ol:my-2',
-          'prose-li:my-1 prose-blockquote:my-2 prose-pre:my-2'
+          'prose-headings:font-semibold prose-p:mb-4 prose-ul:my-4 prose-ol:my-4',
+          'prose-li:my-1 prose-blockquote:my-4 prose-pre:my-4',
+          'whitespace-pre-wrap'
         ),
       },
     },
@@ -325,6 +337,12 @@ export const RichTextEditor = ({
           title="Ordered List"
         >
           <ListOrdered className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().setHardBreak().run()}
+          title="Line Break (Shift+Enter)"
+        >
+          <CornerDownLeft className="h-4 w-4" />
         </ToolbarButton>
 
         {toolbarVariant === 'full' && (
