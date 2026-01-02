@@ -162,7 +162,7 @@ export const Tier3ReferenceTab = () => {
                         {ref.brand_pricing?.dose_strength || 'N/A'}
                       </TableCell>
                       <TableCell className="font-mono text-sm">
-                        ${ref.brand_pricing?.price_per_dose_usd.toFixed(2)}
+                        ${ref.brand_pricing?.price_per_dose?.toFixed(2) || 'N/A'}
                       </TableCell>
                       <TableCell className="text-sm">
                         {ref.brand_pricing?.doses_per_package || 'N/A'}

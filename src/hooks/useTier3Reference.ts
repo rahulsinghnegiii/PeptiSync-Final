@@ -221,6 +221,27 @@ export function useCreateTier3Reference() {
     setCreating(true);
 
     try {
+      // Validate required top-level fields
+      if (!data.vendor_id || data.vendor_id.trim() === '') {
+        toast.error('Vendor/Manufacturer is required. Please select a brand from the dropdown.');
+        return false;
+      }
+
+      if (!data.product_name || data.product_name.trim() === '') {
+        toast.error('Product name is required (e.g., Zepbound, Ozempic)');
+        return false;
+      }
+
+      if (!data.glp_type) {
+        toast.error('GLP-1 Type is required (Semaglutide or Tirzepatide)');
+        return false;
+      }
+
+      if (!data.pricing_source) {
+        toast.error('Pricing source is required');
+        return false;
+      }
+
       // Validate brand pricing
       if (!data.brand_pricing) {
         toast.error('Brand pricing data is required');
@@ -239,11 +260,24 @@ export function useCreateTier3Reference() {
         );
       }
 
+      // Detailed validation with better error messages
       const validationResult = validateTier3Pricing(data.brand_pricing);
       if (!validationResult.valid) {
-        toast.error(`Validation failed: ${validationResult.errors.join(', ')}`);
+        const errorMessage = validationResult.errors.join('\n• ');
+        toast.error(`Validation failed:\n• ${errorMessage}`, {
+          duration: 5000,
+        });
+        console.error('Validation errors:', validationResult.errors);
         return false;
       }
+
+      console.log('Creating reference with data:', {
+        vendor_id: data.vendor_id,
+        product_name: data.product_name,
+        glp_type: data.glp_type,
+        pricing_source: data.pricing_source,
+        brand_pricing: data.brand_pricing,
+      });
 
       const referenceData = {
         vendor_id: data.vendor_id,
@@ -264,11 +298,12 @@ export function useCreateTier3Reference() {
       };
 
       await addDoc(collection(db, COLLECTION_NAME), referenceData);
-      toast.success(`Reference pricing for "${data.product_name}" created successfully`);
+      toast.success(`✅ Reference pricing for "${data.product_name}" created successfully`);
       return true;
     } catch (error) {
       console.error('Error creating Tier 3 reference:', error);
-      toast.error('Failed to create reference pricing');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Failed to create reference pricing: ${errorMessage}`);
       return false;
     } finally {
       setCreating(false);

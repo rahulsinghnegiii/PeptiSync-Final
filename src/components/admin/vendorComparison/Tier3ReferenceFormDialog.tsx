@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -110,33 +111,110 @@ export const Tier3ReferenceFormDialog = ({
   }, [reference, form]);
 
   const onSubmit = async (data: Tier3FormValues) => {
-    if (!user) return;
+    console.log('onSubmit called');
+    console.log('user:', user);
+    console.log('form data:', data);
+
+    if (!user) {
+      console.error('User not found!');
+      toast.error('You must be logged in to create reference pricing');
+      return;
+    }
+
+    // Validate vendor_id
+    if (!data.vendor_id || data.vendor_id.trim() === '') {
+      toast.error('Please select a Brand/Manufacturer from the dropdown');
+      return;
+    }
+
+    // Validate product name
+    if (!data.product_name || data.product_name.trim() === '') {
+      toast.error('Product name is required');
+      return;
+    }
+
+    // Validate dose strength
+    if (!data.dose_strength || data.dose_strength.trim() === '') {
+      toast.error('Dose strength is required (e.g., 2.5, 5, 10)');
+      return;
+    }
+
+    // Parse and validate numeric values
+    const pricePerDose = parseFloat(data.price_per_dose_usd);
+    const dosesPerPackage = parseInt(data.doses_per_package);
+
+    console.log('Parsing numbers:', {
+      price_per_dose_usd: data.price_per_dose_usd,
+      pricePerDose,
+      doses_per_package: data.doses_per_package,
+      dosesPerPackage,
+      isNaN_price: isNaN(pricePerDose),
+      isNaN_doses: isNaN(dosesPerPackage),
+    });
+
+    if (!data.price_per_dose_usd || data.price_per_dose_usd.trim() === '') {
+      toast.error('Price per dose is required');
+      return;
+    }
+
+    if (!data.doses_per_package || data.doses_per_package.trim() === '') {
+      toast.error('Doses per package is required');
+      return;
+    }
+
+    if (isNaN(pricePerDose) || pricePerDose <= 0) {
+      toast.error('Price per dose must be a valid positive number (e.g., 299.00)');
+      return;
+    }
+
+    if (isNaN(dosesPerPackage) || dosesPerPackage < 1) {
+      toast.error('Doses per package must be a valid positive number (e.g., 1, 4, 6)');
+      return;
+    }
+
+    // Calculate total package price (now safe since we validated above)
+    const totalPackagePrice = parseFloat((pricePerDose * dosesPerPackage).toFixed(2));
+
+    console.log('Form data being submitted:', {
+      vendor_id: data.vendor_id,
+      product_name: data.product_name,
+      glp_type: data.glp_type,
+      dose_strength: data.dose_strength,
+      price_per_dose: pricePerDose,
+      doses_per_package: dosesPerPackage,
+      total_package_price: totalPackagePrice,
+    });
 
     const referenceData: any = {
       vendor_id: data.vendor_id,
       product_name: data.product_name,
-      product_url: data.product_url,
+      product_url: data.product_url || null,
       glp_type: data.glp_type,
       pricing_source: data.pricing_source,
-      notes: data.notes,
+      notes: data.notes || null,
       brand_pricing: {
-        price_per_dose: parseFloat(data.price_per_dose_usd),
-        doses_per_package: parseInt(data.doses_per_package),
+        price_per_dose: pricePerDose,
+        doses_per_package: dosesPerPackage,
         dose_strength: data.dose_strength,
-        product_url: data.product_url || undefined,
+        total_package_price: totalPackagePrice,
       },
     };
 
-    let success = false;
-    if (isEdit && reference) {
-      success = await updateReference(reference.id, referenceData, user.uid);
-    } else {
-      success = await createReference(referenceData, user.uid);
-    }
+    try {
+      let success = false;
+      if (isEdit && reference) {
+        success = await updateReference(reference.id, referenceData, user.uid);
+      } else {
+        success = await createReference(referenceData, user.uid);
+      }
 
-    if (success) {
-      form.reset();
-      onSave();
+      if (success) {
+        form.reset();
+        onSave();
+      }
+    } catch (error) {
+      console.error('Error submitting reference pricing:', error);
+      toast.error(`Failed to ${isEdit ? 'update' : 'create'} reference pricing: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -146,6 +224,13 @@ export const Tier3ReferenceFormDialog = ({
   // Debug logging
   console.log('All vendors:', vendors);
   console.log('Brand vendors:', brandVendors);
+
+  // Show warning if no brand vendors exist
+  useEffect(() => {
+    if (open && brandVendors.length === 0) {
+      toast.warning('No brand vendors found. Please add Eli Lilly and Novo Nordisk in the Vendors tab first.');
+    }
+  }, [open, brandVendors.length]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
