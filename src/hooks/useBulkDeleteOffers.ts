@@ -38,9 +38,19 @@ export function useBulkDeleteOffers() {
         constraints.push(where('tier', '==', criteria.tier));
       }
       
-      // Execute query
-      const q = constraints.length > 0 ? query(offersRef, ...constraints) : offersRef;
+      // Execute query - must have at least one constraint
+      if (constraints.length === 0) {
+        toast.error('No criteria specified for bulk delete');
+        return 0;
+      }
+      
+      const q = query(offersRef, ...constraints);
       const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        toast.info('No offers found matching criteria');
+        return 0;
+      }
       
       // Delete in batches
       const deletePromises = snapshot.docs.map((doc) => deleteDoc(doc.ref));

@@ -10,12 +10,14 @@
  */
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Package, Award, Upload, CheckCircle } from 'lucide-react';
+import { Store, Package, Award, Upload, CheckCircle, Settings, Activity } from 'lucide-react';
 import { VendorManagementTab } from './vendorComparison/VendorManagementTab';
 import { OfferManagementTab } from './vendorComparison/OfferManagementTab';
 import { Tier3ReferenceTab } from './vendorComparison/Tier3ReferenceTab';
 import { UploadTab } from './vendorComparison/UploadTab';
 import { ReviewQueueTab } from './vendorComparison/ReviewQueueTab';
+import { ScraperConfigurationTab } from './vendorComparison/ScraperConfigurationTab';
+import { ScraperMonitoringTab } from './vendorComparison/ScraperMonitoringTab';
 
 export const AdminVendorComparison = () => {
   return (
@@ -28,7 +30,7 @@ export const AdminVendorComparison = () => {
       </div>
 
       <Tabs defaultValue="vendors" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="vendors" className="flex items-center gap-2">
             <Store className="w-4 h-4" />
             Vendors
@@ -48,6 +50,14 @@ export const AdminVendorComparison = () => {
           <TabsTrigger value="tier3-reference" className="flex items-center gap-2">
             <Award className="w-4 h-4" />
             Tier 3 Reference
+          </TabsTrigger>
+          <TabsTrigger value="scraper-config" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Scraper Config
+          </TabsTrigger>
+          <TabsTrigger value="scraper-monitoring" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Monitoring
           </TabsTrigger>
         </TabsList>
 
@@ -69,6 +79,14 @@ export const AdminVendorComparison = () => {
 
         <TabsContent value="tier3-reference">
           <Tier3ReferenceTab />
+        </TabsContent>
+
+        <TabsContent value="scraper-config">
+          <ScraperConfigurationTab />
+        </TabsContent>
+
+        <TabsContent value="scraper-monitoring">
+          <ScraperMonitoringTab />
         </TabsContent>
       </Tabs>
     </div>

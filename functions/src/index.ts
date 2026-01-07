@@ -1,22 +1,7 @@
 /**
- * Daily Timestamp Update Cloud Function
+ * PeptiSync Cloud Functions
  * 
- * Scheduled Firebase Cloud Function that runs daily to update
- * last_price_check timestamps on all vendor offers.
- * 
- * Phase 7: Automation
- * 
- * Scope (V1):
- * - Updates timestamps only
- * - No scraping or OCR
- * - No price validation
- * - Logs job status to vendor_automation_jobs collection
- * 
- * V2 Features (not implemented):
- * - Automated scraping
- * - OCR for PDFs
- * - Price validation
- * - External data source integration
+ * Main entry point for all Firebase Cloud Functions
  */
 
 import * as functions from 'firebase-functions';
@@ -26,6 +11,16 @@ import * as admin from 'firebase-admin';
 if (!admin.apps.length) {
   admin.initializeApp();
 }
+
+// Export scraper functions
+export * from './scrapers';
+
+// Export admin management functions
+export * from './admin';
+
+// ============================================================================
+// EXISTING TIMESTAMP UPDATE FUNCTIONS
+// ============================================================================
 
 const db = admin.firestore();
 

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -56,9 +57,11 @@ export const OfferManagementTab = () => {
   const [offerToDelete, setOfferToDelete] = useState<{ id: string; name: string } | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [bulkDeleteCriteria, setBulkDeleteCriteria] = useState<'vendor' | 'unverified' | 'tier' | ''>('');
+  const [bulkDeleteCriteria, setBulkDeleteCriteria] = useState<'vendor' | 'unverified' | 'tier' | 'selected' | ''>('');
   const [bulkDeleteValue, setBulkDeleteValue] = useState<string>('');
   const [viewingHistoryOfferId, setViewingHistoryOfferId] = useState<string | null>(null);
+  const [selectedOfferIds, setSelectedOfferIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch offers with vendor data
   const { offers, loading, refetch } = useVendorOffersWithVendor(
@@ -69,6 +72,29 @@ export const OfferManagementTab = () => {
   const { vendors } = useVendors();
   const { deleteOffer } = useDeleteVendorOffer();
   const { deleteOffersByCriteria, deleting: bulkDeleting } = useBulkDeleteOffers();
+
+  // Selection handlers
+  const toggleSelectOffer = (offerId: string) => {
+    const newSelected = new Set(selectedOfferIds);
+    if (newSelected.has(offerId)) {
+      newSelected.delete(offerId);
+    } else {
+      newSelected.add(offerId);
+    }
+    setSelectedOfferIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOfferIds.size === filteredOffers.length) {
+      setSelectedOfferIds(new Set());
+    } else {
+      setSelectedOfferIds(new Set(filteredOffers.map(o => o.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedOfferIds(new Set());
+  };
 
   // Filter offers
   const filteredOffers = offers.filter((offer) => {
@@ -164,13 +190,21 @@ export const OfferManagementTab = () => {
   const handleDeleteConfirm = async () => {
     if (!offerToDelete) return;
 
+    setIsDeleting(true);
     const success = await deleteOffer(offerToDelete.id);
-    if (success) {
-      refetch();
-    }
-
+    
     setOfferToDelete(null);
     setShowDeleteDialog(false);
+    
+    // Only refetch once after a delay
+    if (success) {
+      setTimeout(() => {
+        setIsDeleting(false);
+        refetch();
+      }, 500);
+    } else {
+      setIsDeleting(false);
+    }
   };
 
   // Bulk delete handlers
@@ -179,32 +213,55 @@ export const OfferManagementTab = () => {
       toast.error('Please select a delete criteria');
       return;
     }
+    if (bulkDeleteCriteria === 'selected' && selectedOfferIds.size === 0) {
+      toast.error('Please select offers to delete');
+      return;
+    }
     setShowBulkDeleteDialog(true);
   };
 
   const handleBulkDeleteConfirm = async () => {
-    let criteria: any = {};
+    setIsDeleting(true);
+    let deletedCount = 0;
 
-    if (bulkDeleteCriteria === 'vendor' && bulkDeleteValue) {
-      criteria.vendorId = bulkDeleteValue;
-    } else if (bulkDeleteCriteria === 'unverified') {
-      criteria.verificationStatus = 'unverified';
-    } else if (bulkDeleteCriteria === 'tier' && bulkDeleteValue) {
-      criteria.tier = bulkDeleteValue as VendorTier;
-    }
+    if (bulkDeleteCriteria === 'selected') {
+      // Delete selected offers one by one
+      const deletePromises = Array.from(selectedOfferIds).map(id => deleteOffer(id));
+      const results = await Promise.all(deletePromises);
+      deletedCount = results.filter(r => r).length;
+      toast.success(`Deleted ${deletedCount} selected offer(s)`);
+      clearSelection();
+    } else {
+      // Delete by criteria
+      let criteria: any = {};
 
-    const deletedCount = await deleteOffersByCriteria(criteria);
-    
-    if (deletedCount > 0) {
-      refetch();
+      if (bulkDeleteCriteria === 'vendor' && bulkDeleteValue) {
+        criteria.vendorId = bulkDeleteValue;
+      } else if (bulkDeleteCriteria === 'unverified') {
+        criteria.verificationStatus = 'unverified';
+      } else if (bulkDeleteCriteria === 'tier' && bulkDeleteValue) {
+        criteria.tier = bulkDeleteValue as VendorTier;
+      }
+
+      deletedCount = await deleteOffersByCriteria(criteria);
     }
     
     setShowBulkDeleteDialog(false);
     setBulkDeleteCriteria('');
     setBulkDeleteValue('');
+    
+    // Only refetch once after a delay
+    if (deletedCount > 0) {
+      setTimeout(() => {
+        setIsDeleting(false);
+        refetch();
+      }, 500);
+    } else {
+      setIsDeleting(false);
+    }
   };
 
-  if (loading) {
+  if (loading && !isDeleting) {
     return (
       <Card className="glass border-glass-border">
         <CardContent className="p-6 text-center">
@@ -216,7 +273,16 @@ export const OfferManagementTab = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Loading Overlay */}
+      {isDeleting && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Deleting offers...</p>
+          </div>
+        </div>
+      )}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -284,13 +350,21 @@ export const OfferManagementTab = () => {
 
           {/* Bulk Delete Toolbar */}
           <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border">
+            {selectedOfferIds.size > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
+                <span className="text-sm font-medium text-primary">{selectedOfferIds.size} selected</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 flex-1">
               <span className="text-sm font-medium">Bulk Delete:</span>
               <Select value={bulkDeleteCriteria} onValueChange={(value: any) => setBulkDeleteCriteria(value)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select criteria" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="selected">
+                    Selected Offers ({selectedOfferIds.size})
+                  </SelectItem>
                   <SelectItem value="vendor">By Vendor</SelectItem>
                   <SelectItem value="unverified">Unverified Only</SelectItem>
                   <SelectItem value="tier">By Tier</SelectItem>
@@ -329,11 +403,29 @@ export const OfferManagementTab = () => {
             <Button
               variant="destructive"
               onClick={handleBulkDeleteClick}
-              disabled={!bulkDeleteCriteria || (bulkDeleteCriteria !== 'unverified' && !bulkDeleteValue) || bulkDeleting}
+              disabled={
+                isDeleting ||
+                !bulkDeleteCriteria || 
+                (bulkDeleteCriteria === 'selected' && selectedOfferIds.size === 0) ||
+                (bulkDeleteCriteria !== 'unverified' && bulkDeleteCriteria !== 'selected' && !bulkDeleteValue) || 
+                bulkDeleting
+              }
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Bulk Delete
+              {bulkDeleteCriteria === 'selected' 
+                ? `Delete ${selectedOfferIds.size} Selected` 
+                : 'Bulk Delete'}
             </Button>
+            
+            {selectedOfferIds.size > 0 && (
+              <Button
+                variant="outline"
+                onClick={clearSelection}
+                disabled={isDeleting}
+              >
+                Clear Selection
+              </Button>
+            )}
           </div>
 
           {/* Offers Table */}
@@ -341,6 +433,12 @@ export const OfferManagementTab = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedOfferIds.size === filteredOffers.length && filteredOffers.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Vendor</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Peptide</TableHead>
@@ -353,13 +451,19 @@ export const OfferManagementTab = () => {
               <TableBody>
                 {filteredOffers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       No offers found matching filters
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredOffers.map((offer) => (
                     <TableRow key={offer.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedOfferIds.has(offer.id)}
+                          onCheckedChange={() => toggleSelectOffer(offer.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{offer.vendor.name}</TableCell>
                       <TableCell>{getTierBadge(offer.tier)}</TableCell>
                       <TableCell>{offer.peptide_name}</TableCell>
@@ -488,6 +592,9 @@ export const OfferManagementTab = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Bulk Delete Offers?</AlertDialogTitle>
             <AlertDialogDescription>
+              {bulkDeleteCriteria === 'selected' && (
+                <>This will permanently delete <strong>{selectedOfferIds.size}</strong> selected offer(s). This action cannot be undone.</>
+              )}
               {bulkDeleteCriteria === 'unverified' && (
                 <>This will permanently delete all <strong>unverified</strong> offers. This action cannot be undone.</>
               )}
@@ -505,7 +612,7 @@ export const OfferManagementTab = () => {
               onClick={handleBulkDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete All Matching Offers
+              {bulkDeleteCriteria === 'selected' ? `Delete ${selectedOfferIds.size} Offer(s)` : 'Delete All Matching Offers'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

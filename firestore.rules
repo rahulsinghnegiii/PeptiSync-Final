@@ -12,8 +12,10 @@ service cloud.firestore {
     }
     
     function isAdmin() {
+      // Check custom claim first (set via Cloud Functions)
       return isAuthenticated() && 
-             get(/databases/$(database)/documents/userRoles/$(request.auth.uid)).data.role == 'admin';
+             (request.auth.token.admin == true ||
+              get(/databases/$(database)/documents/userRoles/$(request.auth.uid)).data.role == 'admin');
     }
     
     function isModerator() {
@@ -134,6 +136,36 @@ service cloud.firestore {
     match /vendor_automation_jobs/{jobId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
+    }
+    
+    // Vendor URLs (scraper whitelist configuration)
+    match /vendor_urls/{vendorId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Vendor selectors (cached discovered selectors)
+    match /vendor_selectors/{vendorId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Scraper jobs (job tracking and observability)
+    match /scraper_jobs/{jobId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+      
+      // Vendor-level results subcollection
+      match /vendors/{vendorSubId} {
+        allow read: if isAdmin();
+        allow write: if isAdmin();
+      }
+      
+      // Item-level details subcollection (directly under job)
+      match /items/{itemId} {
+        allow read: if isAdmin();
+        allow write: if isAdmin();
+      }
     }
   }
 }
