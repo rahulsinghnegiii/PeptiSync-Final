@@ -14,6 +14,11 @@ export interface SubscriptionInfo {
   isProPlus: boolean;
   isElite: boolean;
   isAdmin: boolean;
+  // Stripe subscription fields
+  subscriptionSource: 'stripe' | null;
+  isAppSubscriber: () => boolean;
+  isWebSubscriber: () => boolean;
+  canPurchaseOnWeb: () => boolean;
 }
 
 /**
@@ -23,34 +28,38 @@ export interface SubscriptionInfo {
 export const useSubscription = (): SubscriptionInfo => {
   const { user, loading: authLoading } = useAuth();
   const [planTier, setPlanTier] = useState<PlanTier>('free');
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserPlan = async () => {
       if (!user) {
         setPlanTier('free');
+        setUserData(null);
         setLoading(false);
         return;
       }
 
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
-        const userData = userDoc.data();
+        const data = userDoc.data();
+        setUserData(data);
 
         // Check for admin/moderator (bypass all restrictions)
-        if (userData?.isAdmin || userData?.is_admin || userData?.isModerator || userData?.is_moderator) {
+        if (data?.isAdmin || data?.is_admin || data?.isModerator || data?.is_moderator) {
           setPlanTier('admin');
           setLoading(false);
           return;
         }
 
         // Get plan tier (handle both field names for compatibility)
-        const plan = userData?.planTier || userData?.plan_tier || userData?.membershipTier || userData?.membership_tier || 'free';
+        const plan = data?.planTier || data?.plan_tier || data?.membershipTier || data?.membership_tier || 'free';
         setPlanTier(plan as PlanTier);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user plan:', error);
         setPlanTier('free');
+        setUserData(null);
         setLoading(false);
       }
     };
@@ -140,6 +149,29 @@ export const useSubscription = (): SubscriptionInfo => {
     return featurePlanMap[feature] || 'pro';
   };
 
+  /**
+   * Check if user is an app subscriber (RevenueCat)
+   * Logic: subscriptionSource is null AND planTier is not free
+   */
+  const isAppSubscriber = (): boolean => {
+    return userData?.subscriptionSource === null && planTier !== 'free';
+  };
+
+  /**
+   * Check if user is a web subscriber (Stripe)
+   */
+  const isWebSubscriber = (): boolean => {
+    return userData?.subscriptionSource === 'stripe';
+  };
+
+  /**
+   * Check if user can purchase subscriptions on the web
+   * Allow if: free tier OR already a web subscriber (for upgrades)
+   */
+  const canPurchaseOnWeb = (): boolean => {
+    return planTier === 'free' || userData?.subscriptionSource === 'stripe';
+  };
+
   return {
     planTier,
     loading: authLoading || loading,
@@ -149,6 +181,11 @@ export const useSubscription = (): SubscriptionInfo => {
     isProPlus: planTier === 'pro_plus' || planTier === 'elite' || planTier === 'admin',
     isElite: planTier === 'elite' || planTier === 'admin',
     isAdmin: planTier === 'admin',
+    // Stripe subscription fields
+    subscriptionSource: userData?.subscriptionSource || null,
+    isAppSubscriber,
+    isWebSubscriber,
+    canPurchaseOnWeb,
   };
 };
 

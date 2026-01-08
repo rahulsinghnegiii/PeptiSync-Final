@@ -63,6 +63,9 @@ const TermsOfUse = lazy(() => import("./pages/legal/TermsOfUse"));
 const LegalPrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const Disclaimer = lazy(() => import("./pages/legal/Disclaimer"));
 const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
+// Subscription pages
+const Pricing = lazy(() => import("./pages/Pricing"));
+const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 
 // Store cleanup interval ID for proper cleanup
 let cacheCleanupInterval: NodeJS.Timeout | null = null;
@@ -160,6 +163,8 @@ const App = () => {
                   <Route path="/legal/privacy" element={<LegalPrivacyPolicy />} />
                   <Route path="/legal/disclaimer" element={<Disclaimer />} />
                   <Route path="/legal/cookies" element={<CookiePolicy />} />
+                  {/* Pricing page */}
+                  <Route path="/pricing" element={<Pricing />} />
                   {/* Auth routes - Guest only */}
                   <Route path="/auth" element={<GuestOnly><Auth /></GuestOnly>} />
                   <Route path="/login" element={<GuestOnly><Auth /></GuestOnly>} /> {/* Alias for /auth */}
@@ -170,6 +175,8 @@ const App = () => {
                   <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                   {/* Admin only routes */}
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                  {/* Subscription routes */}
+                  <Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
                   {/* Legacy routes */}
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

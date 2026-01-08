@@ -275,3 +275,11 @@ export const getAutomationJobs = functions.https.onCall(async (data: any, contex
   }
 });
 
+// ============================================================================
+// STRIPE SUBSCRIPTION WEBHOOKS
+// ============================================================================
+
+// Export Stripe webhook handlers
+export { handleStripeWebhook } from './webhooks/stripe-webhook';
+export { createStripeCheckout } from './webhooks/create-stripe-checkout';
+

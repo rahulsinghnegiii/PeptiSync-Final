@@ -30,6 +30,7 @@ const Navigation = () => {
 
   const navItems = [
     { name: "Features", href: "/features", requiresAuth: false },
+    { name: "Pricing", href: "/pricing", requiresAuth: false },
     { name: "About", href: "/about", requiresAuth: false },
     { name: "Blog", href: "/blog", requiresAuth: false },
     { name: "Vendor Comparison", href: "/vendor-comparison", requiresAuth: true },
