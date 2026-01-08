@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Zap, Crown, Sparkles, Shield, ChevronDown } from 'lucide-react';
 import { useStripeCheckout } from '@/hooks/useStripeCheckout';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { getPriceId } from '@/lib/stripeConfig';
 import Navigation from '@/components/Navigation';
@@ -119,6 +120,7 @@ function PricingCard({ tier, billingPeriod }: { tier: PricingTier; billingPeriod
   const { user } = useAuth();
   const navigate = useNavigate();
   const { createCheckout, loading, isAppSubscriber } = useStripeCheckout();
+  const { actualPlanTier, isAdmin, loading: subscriptionLoading } = useSubscription();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const displayPrice = billingPeriod === 'monthly' ? tier.monthlyPrice : tier.yearlyPrice;
@@ -129,6 +131,10 @@ function PricingCard({ tier, billingPeriod }: { tier: PricingTier; billingPeriod
   // Show first 3 features, rest are expandable
   const visibleFeatures = isExpanded ? tier.features : tier.features.slice(0, 3);
   const hasMoreFeatures = tier.features.length > 3;
+  
+  // Check if this is the user's current plan (use actualPlanTier for display)
+  const isCurrentPlan = user && actualPlanTier === tier.id;
+  const hasActivePaidPlan = actualPlanTier !== 'free';
 
   const handleSubscribe = () => {
     if (!user) {
@@ -267,11 +273,38 @@ function PricingCard({ tier, billingPeriod }: { tier: PricingTier; billingPeriod
 
       {/* CTA Button */}
       <div className="mt-auto">
-        {isAppSubscriber ? (
+        {subscriptionLoading ? (
+          // Loading subscription data
+          <button
+            disabled
+            className="w-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 py-2.5 px-4 rounded-lg font-semibold cursor-wait text-sm"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Loading...
+            </span>
+          </button>
+        ) : isAppSubscriber ? (
+          // User has app subscription (from mobile - RevenueCat)
           <div>
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2 mb-2">
               <p className="text-xs text-amber-800 dark:text-amber-200 text-center">
-                Active in mobile app
+                Active subscription in mobile app
               </p>
             </div>
             <button
@@ -281,7 +314,53 @@ function PricingCard({ tier, billingPeriod }: { tier: PricingTier; billingPeriod
               Manage in App
             </button>
           </div>
+        ) : isCurrentPlan ? (
+          // This is user's current plan (from Firebase)
+          <button
+            disabled
+            className="w-full bg-green-100 dark:bg-green-900/30 border-2 border-green-500 text-green-700 dark:text-green-300 py-2.5 px-4 rounded-lg font-semibold cursor-default text-sm flex items-center justify-center gap-2"
+          >
+            <Check className="w-4 h-4" />
+            Current Plan
+          </button>
+        ) : hasActivePaidPlan && tier.id !== 'free' ? (
+          // User has a different paid plan - allow switching
+          <button
+            onClick={handleSubscribe}
+            disabled={loading}
+            className={`
+              w-full py-2.5 px-4 rounded-lg font-semibold transition-all duration-200 text-sm
+              ${colors.button}
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transform active:scale-95 hover:shadow-lg
+            `}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Processing...
+              </span>
+            ) : (
+              'Switch Plan'
+            )}
+          </button>
         ) : (
+          // Free user or new subscriber
           <button
             onClick={handleSubscribe}
             disabled={loading}
@@ -326,6 +405,8 @@ function PricingCard({ tier, billingPeriod }: { tier: PricingTier; billingPeriod
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('yearly');
+  const { user } = useAuth();
+  const { planTier, actualPlanTier, subscriptionSource, isAdmin, loading } = useSubscription();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -333,6 +414,21 @@ export default function Pricing() {
 
       <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          {/* Debug Panel - Remove this after testing */}
+          {user && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+              <h3 className="text-sm font-bold text-blue-900 dark:text-blue-200 mb-2">🔍 Debug Info (Remove after testing)</h3>
+              <div className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+                <p><strong>User ID:</strong> {user.uid}</p>
+                <p><strong>Email:</strong> {user.email}</p>
+                <p><strong>Plan Tier (for features):</strong> {loading ? 'Loading...' : planTier}</p>
+                <p><strong>Actual Plan (for display):</strong> {loading ? 'Loading...' : actualPlanTier}</p>
+                <p><strong>Is Admin:</strong> {loading ? 'Loading...' : (isAdmin ? 'Yes' : 'No')}</p>
+                <p><strong>Subscription Source:</strong> {loading ? 'Loading...' : (subscriptionSource || 'null (app subscriber)')}</p>
+              </div>
+            </div>
+          )}
+          
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4">

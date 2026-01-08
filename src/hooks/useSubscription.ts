@@ -7,6 +7,7 @@ export type PlanTier = 'free' | 'basic' | 'pro' | 'pro_plus' | 'elite' | 'admin'
 
 export interface SubscriptionInfo {
   planTier: PlanTier;
+  actualPlanTier: PlanTier; // The real subscription plan (elite, pro, etc.)
   loading: boolean;
   hasFeature: (feature: string) => boolean;
   getRequiredPlan: (feature: string) => PlanTier;
@@ -28,6 +29,7 @@ export interface SubscriptionInfo {
 export const useSubscription = (): SubscriptionInfo => {
   const { user, loading: authLoading } = useAuth();
   const [planTier, setPlanTier] = useState<PlanTier>('free');
+  const [actualPlanTier, setActualPlanTier] = useState<PlanTier>('free');
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,24 +43,49 @@ export const useSubscription = (): SubscriptionInfo => {
       }
 
       try {
+        console.log('🔍 Fetching user plan for:', user.uid);
         const userDoc = await getDoc(doc(db, 'users', user.uid));
+        
+        if (!userDoc.exists()) {
+          console.warn('⚠️ User document does not exist in Firestore');
+          setPlanTier('free');
+          setActualPlanTier('free');
+          setUserData(null);
+          setLoading(false);
+          return;
+        }
+        
         const data = userDoc.data();
         setUserData(data);
+        
+        console.log('📊 User data from Firebase:', {
+          planTier: data?.planTier,
+          plan_tier: data?.plan_tier,
+          membershipTier: data?.membershipTier,
+          membership_tier: data?.membership_tier,
+          isAdmin: data?.isAdmin || data?.is_admin,
+        });
 
-        // Check for admin/moderator (bypass all restrictions)
+        // Get the actual subscription plan (regardless of admin status)
+        const plan = data?.planTier || data?.plan_tier || data?.membershipTier || data?.membership_tier || 'free';
+        setActualPlanTier(plan as PlanTier);
+        console.log('✅ Actual subscription plan:', plan);
+
+        // Check for admin/moderator (gives admin privileges but preserves actual plan)
         if (data?.isAdmin || data?.is_admin || data?.isModerator || data?.is_moderator) {
+          console.log('👑 User is admin/moderator - setting planTier to admin for features, actualPlanTier:', plan);
           setPlanTier('admin');
           setLoading(false);
           return;
         }
 
-        // Get plan tier (handle both field names for compatibility)
-        const plan = data?.planTier || data?.plan_tier || data?.membershipTier || data?.membership_tier || 'free';
+        // Regular user - planTier and actualPlanTier are the same
         setPlanTier(plan as PlanTier);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching user plan:', error);
+        console.error('❌ Error fetching user plan:', error);
         setPlanTier('free');
+        setActualPlanTier('free');
         setUserData(null);
         setLoading(false);
       }
@@ -151,10 +178,10 @@ export const useSubscription = (): SubscriptionInfo => {
 
   /**
    * Check if user is an app subscriber (RevenueCat)
-   * Logic: subscriptionSource is null AND planTier is not free
+   * Logic: subscriptionSource is null AND actualPlanTier is not free
    */
   const isAppSubscriber = (): boolean => {
-    return userData?.subscriptionSource === null && planTier !== 'free';
+    return userData?.subscriptionSource === null && actualPlanTier !== 'free';
   };
 
   /**
@@ -169,11 +196,12 @@ export const useSubscription = (): SubscriptionInfo => {
    * Allow if: free tier OR already a web subscriber (for upgrades)
    */
   const canPurchaseOnWeb = (): boolean => {
-    return planTier === 'free' || userData?.subscriptionSource === 'stripe';
+    return actualPlanTier === 'free' || userData?.subscriptionSource === 'stripe';
   };
 
   return {
     planTier,
+    actualPlanTier, // For UI display to show the real subscription plan
     loading: authLoading || loading,
     hasFeature,
     getRequiredPlan,
