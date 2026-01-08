@@ -22,6 +22,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -33,6 +34,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { useVendors } from '@/hooks/useVendors';
 import { useCreateVendorOffer } from '@/hooks/useVendorOffers';
@@ -53,14 +55,20 @@ const offerFormSchema = z.object({
   lab_test_url: z.string().url('Must be valid URL').optional().or(z.literal('')),
   
   // Telehealth pricing
-  subscription_monthly_usd: z.string().optional(),
-  medication_included: z.boolean().optional(),
-  medication_cost_usd: z.string().optional(),
-  dose_strength: z.string().optional(),
+  subscription_price_monthly: z.string().optional(),
+  subscription_includes_medication: z.boolean().optional(),
+  medication_separate_cost: z.string().optional(),
+  medication_dose: z.string().optional(),
   consultation_included: z.boolean().optional(),
+  // REQUIRED TRANSPARENCY FIELDS (LOCKED SPEC)
+  glp_type: z.enum(['Semaglutide', 'Tirzepatide']).optional(),
+  dose_mg_per_injection: z.string().optional(),
+  injections_per_month: z.string().optional(),
+  total_mg_per_month: z.string().optional(),
   
   // Brand pricing
-  price_per_dose_usd: z.string().optional(),
+  dose_strength: z.string().optional(),
+  price_per_dose: z.string().optional(),
   doses_per_package: z.string().optional(),
   product_url: z.string().url('Must be valid URL').optional().or(z.literal('')),
   
@@ -90,8 +98,12 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
       tier: 'research',
       peptide_name: '',
       status: 'active',
-      medication_included: false,
+      subscription_includes_medication: false,
       consultation_included: false,
+      glp_type: 'Semaglutide',
+      dose_mg_per_injection: '',
+      injections_per_month: '4',
+      total_mg_per_month: '',
     },
   });
 
@@ -100,6 +112,19 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
     const subscription = form.watch((value, { name }) => {
       if (name === 'tier') {
         setSelectedTier(value.tier as VendorTier);
+      }
+      
+      // Auto-calculate total_mg_per_month for telehealth
+      if (
+        value.tier === 'telehealth' &&
+        (name === 'dose_mg_per_injection' || name === 'injections_per_month')
+      ) {
+        const dose = parseFloat(value.dose_mg_per_injection || '0');
+        const injections = parseInt(value.injections_per_month || '0');
+        if (dose > 0 && injections > 0) {
+          const total = dose * injections;
+          form.setValue('total_mg_per_month', total.toFixed(2));
+        }
       }
     });
     return () => subscription.unsubscribe();
@@ -127,21 +152,27 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
       };
     } else if (data.tier === 'telehealth') {
       offerData.telehealth_pricing = {
-        subscription_monthly_usd: parseFloat(data.subscription_monthly_usd || '0'),
-        medication_included: data.medication_included || false,
-        medication_cost_usd: data.medication_cost_usd
-          ? parseFloat(data.medication_cost_usd)
+        subscription_price_monthly: parseFloat(data.subscription_price_monthly || '0'),
+        subscription_includes_medication: data.subscription_includes_medication || false,
+        medication_separate_cost: data.medication_separate_cost
+          ? parseFloat(data.medication_separate_cost)
           : undefined,
-        dose_strength: data.dose_strength,
+        medication_dose: data.medication_dose,
         consultation_included: data.consultation_included || false,
+        glp_type: data.glp_type,
+        dose_mg_per_injection: data.dose_mg_per_injection ? parseFloat(data.dose_mg_per_injection) : 0,
+        injections_per_month: data.injections_per_month ? parseInt(data.injections_per_month) : 4,
+        total_mg_per_month: data.total_mg_per_month ? parseFloat(data.total_mg_per_month) : 0,
+        required_fields_transparent: true,
       };
     } else if (data.tier === 'brand') {
       offerData.brand_pricing = {
-        price_per_dose_usd: parseFloat(data.price_per_dose_usd || '0'),
-        doses_per_package: data.doses_per_package ? parseInt(data.doses_per_package) : undefined,
-        dose_strength: data.dose_strength,
-        product_url: data.product_url || undefined,
+        dose_strength: data.dose_strength || '',
+        price_per_dose: parseFloat(data.price_per_dose || '0'),
+        doses_per_package: data.doses_per_package ? parseInt(data.doses_per_package) : 0,
+        total_package_price: 0, // Will be calculated by backend
       };
+      offerData.product_url = data.product_url || undefined;
     }
 
     const success = await createOffer(offerData, user.uid);
@@ -295,7 +326,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="subscription_monthly_usd"
+                    name="subscription_price_monthly"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Monthly Subscription (USD) *</FormLabel>
@@ -308,7 +339,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                   />
                   <FormField
                     control={form.control}
-                    name="dose_strength"
+                    name="medication_dose"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Dose Strength</FormLabel>
@@ -323,7 +354,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="medication_included"
+                    name="subscription_includes_medication"
                     render={({ field }) => (
                       <FormItem className="flex items-center gap-2 space-y-0">
                         <FormControl>
@@ -356,10 +387,10 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                     )}
                   />
                 </div>
-                {!form.watch('medication_included') && (
+                {!form.watch('subscription_includes_medication') && (
                   <FormField
                     control={form.control}
-                    name="medication_cost_usd"
+                    name="medication_separate_cost"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Medication Cost (USD)</FormLabel>
@@ -371,15 +402,103 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                     )}
                   />
                 )}
+                
+                {/* REQUIRED TRANSPARENCY FIELDS */}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="glp_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>GLP Type *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select GLP type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Semaglutide">Semaglutide</SelectItem>
+                            <SelectItem value="Tirzepatide">Tirzepatide</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dose_mg_per_injection"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dose (mg) per Injection *</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" placeholder="0.2" {...field} />
+                        </FormControl>
+                        <FormDescription>e.g., 0.2, 2.5</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="injections_per_month"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Injections per Month *</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="1" placeholder="4" {...field} />
+                        </FormControl>
+                        <FormDescription>Typically 4 for weekly</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="total_mg_per_month"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total mg per Month *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            placeholder="0.8" 
+                            {...field}
+                            readOnly
+                            className="bg-muted"
+                          />
+                        </FormControl>
+                        <FormDescription>Auto-calculated: dose × injections</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </>
             )}
 
             {selectedTier === 'brand' && (
               <>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="price_per_dose_usd"
+                    name="dose_strength"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dose Strength *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., 0.25mg, 2mg" {...field} />
+                        </FormControl>
+                        <FormDescription>Include "mg" (e.g., "0.25mg", "2.5mg")</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="price_per_dose"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Price per Dose (USD) *</FormLabel>
@@ -395,23 +514,11 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                     name="doses_per_package"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Doses per Package</FormLabel>
+                        <FormLabel>Doses per Package *</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="4" {...field} />
+                          <Input type="number" step="1" placeholder="4" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dose_strength"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dose Strength</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 2mg" {...field} />
-                        </FormControl>
+                        <FormDescription>Number of doses in the package</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

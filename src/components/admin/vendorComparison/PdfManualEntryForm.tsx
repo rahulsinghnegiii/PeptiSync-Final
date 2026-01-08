@@ -5,7 +5,7 @@
  * Phase 4: PDF Upload + Manual Entry
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Save } from 'lucide-react';
 import type { VendorTier, OfferFormData } from '@/types/vendorComparison';
@@ -45,6 +46,13 @@ const telehealthPricingSchema = z.object({
   medication_separate_cost: z.coerce.number().nonnegative().optional(),
   medication_dose: z.string().optional(),
   consultation_included: z.boolean().optional(),
+  // REQUIRED TRANSPARENCY FIELDS (LOCKED SPEC)
+  glp_type: z.enum(['Semaglutide', 'Tirzepatide'], {
+    required_error: 'GLP type is required',
+  }),
+  dose_mg_per_injection: z.coerce.number().positive('Dose per injection must be a positive number'),
+  injections_per_month: z.coerce.number().int().min(1, 'Injections per month must be at least 1'),
+  total_mg_per_month: z.coerce.number().positive('Total mg per month must be a positive number'),
   discount_code: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -101,6 +109,34 @@ export const PdfManualEntryForm = ({
     name: 'entries',
   });
 
+  // Auto-calculate total_mg_per_month for telehealth entries
+  useEffect(() => {
+    if (tier !== 'telehealth') return;
+    
+    const subscription = form.watch((value, { name }) => {
+      if (name && (name.includes('dose_mg_per_injection') || name.includes('injections_per_month'))) {
+        const match = name.match(/entries\.(\d+)\./);
+        if (match) {
+          const index = parseInt(match[1]);
+          const entries = value.entries || [];
+          const entry = entries[index];
+          
+          if (entry) {
+            const dose = parseFloat(entry.dose_mg_per_injection || 0);
+            const injections = parseInt(entry.injections_per_month || 0);
+            
+            if (dose > 0 && injections > 0) {
+              const total = dose * injections;
+              form.setValue(`entries.${index}.total_mg_per_month`, total);
+            }
+          }
+        }
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, tier]);
+
   function getDefaultEntry() {
     switch (tier) {
       case 'research':
@@ -123,6 +159,10 @@ export const PdfManualEntryForm = ({
           medication_separate_cost: 0,
           medication_dose: '',
           consultation_included: false,
+          glp_type: 'Semaglutide',
+          dose_mg_per_injection: 0,
+          injections_per_month: 4,
+          total_mg_per_month: 0,
           discount_code: '',
           notes: '',
         };
@@ -440,6 +480,79 @@ const TelehealthPricingFields = ({ form, index }: { form: any; index: number }) 
         </FormItem>
       )}
     />
+    
+    {/* REQUIRED TRANSPARENCY FIELDS */}
+    <FormField
+      control={form.control}
+      name={`entries.${index}.glp_type`}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>GLP Type *</FormLabel>
+          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select GLP type" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value="Semaglutide">Semaglutide</SelectItem>
+              <SelectItem value="Tirzepatide">Tirzepatide</SelectItem>
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <FormField
+      control={form.control}
+      name={`entries.${index}.dose_mg_per_injection`}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Dose (mg) per Injection *</FormLabel>
+          <FormControl>
+            <Input type="number" step="0.01" placeholder="0.2" {...field} />
+          </FormControl>
+          <FormDescription>e.g., 0.2, 2.5</FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <FormField
+      control={form.control}
+      name={`entries.${index}.injections_per_month`}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Injections per Month *</FormLabel>
+          <FormControl>
+            <Input type="number" step="1" placeholder="4" {...field} />
+          </FormControl>
+          <FormDescription>Typically 4 for weekly</FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <FormField
+      control={form.control}
+      name={`entries.${index}.total_mg_per_month`}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Total mg per Month *</FormLabel>
+          <FormControl>
+            <Input 
+              type="number" 
+              step="0.01" 
+              placeholder="0.8" 
+              {...field}
+              readOnly
+              className="bg-muted"
+            />
+          </FormControl>
+          <FormDescription>Auto-calculated: dose × injections</FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    
     <FormField
       control={form.control}
       name={`entries.${index}.discount_code`}
@@ -505,8 +618,9 @@ const BrandPricingFields = ({ form, index }: { form: any; index: number }) => (
         <FormItem>
           <FormLabel>Dose Strength *</FormLabel>
           <FormControl>
-            <Input {...field} placeholder="e.g., 0.25mg" />
+            <Input {...field} placeholder="e.g., 0.25mg, 2.5mg" />
           </FormControl>
+          <FormDescription>Include "mg" (e.g., "0.25mg", "2.5mg")</FormDescription>
           <FormMessage />
         </FormItem>
       )}

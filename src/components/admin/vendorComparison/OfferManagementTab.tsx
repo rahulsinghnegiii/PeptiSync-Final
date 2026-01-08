@@ -36,10 +36,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Plus, CheckCircle2, XCircle, History } from 'lucide-react';
-import { useVendorOffersWithVendor, useDeleteVendorOffer } from '@/hooks/useVendorOffers';
+import { Edit, Trash2, Plus, CheckCircle2, XCircle, History, ShieldCheck } from 'lucide-react';
+import { useVendorOffersWithVendor, useDeleteVendorOffer, useVerifyVendorOffer } from '@/hooks/useVendorOffers';
 import { useVendors } from '@/hooks/useVendors';
 import { useBulkDeleteOffers } from '@/hooks/useBulkDeleteOffers';
+import { useBulkVerifyOffers } from '@/hooks/useBulkVerifyOffers';
+import { useAuth } from '@/contexts/AuthContext';
 import type { VendorTier, VerificationStatus, VendorOfferWithVendor } from '@/types/vendorComparison';
 import { OfferEditDialog } from './OfferEditDialog';
 import { OfferFormDialog } from './OfferFormDialog';
@@ -57,11 +59,15 @@ export const OfferManagementTab = () => {
   const [offerToDelete, setOfferToDelete] = useState<{ id: string; name: string } | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showBulkVerifyDialog, setShowBulkVerifyDialog] = useState(false);
   const [bulkDeleteCriteria, setBulkDeleteCriteria] = useState<'vendor' | 'unverified' | 'tier' | 'selected' | ''>('');
   const [bulkDeleteValue, setBulkDeleteValue] = useState<string>('');
+  const [bulkVerifyCriteria, setBulkVerifyCriteria] = useState<'vendor' | 'unverified' | 'tier' | 'selected' | ''>('');
+  const [bulkVerifyValue, setBulkVerifyValue] = useState<string>('');
   const [viewingHistoryOfferId, setViewingHistoryOfferId] = useState<string | null>(null);
   const [selectedOfferIds, setSelectedOfferIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Fetch offers with vendor data
   const { offers, loading, refetch } = useVendorOffersWithVendor(
@@ -70,8 +76,11 @@ export const OfferManagementTab = () => {
     filterStatus === 'all' ? undefined : filterStatus
   );
   const { vendors } = useVendors();
+  const { user } = useAuth();
   const { deleteOffer } = useDeleteVendorOffer();
+  const { verifyOffer } = useVerifyVendorOffer();
   const { deleteOffersByCriteria, deleting: bulkDeleting } = useBulkDeleteOffers();
+  const { verifyOffersByCriteria, verifying: bulkVerifying } = useBulkVerifyOffers();
 
   // Selection handlers
   const toggleSelectOffer = (offerId: string) => {
@@ -261,7 +270,67 @@ export const OfferManagementTab = () => {
     }
   };
 
-  if (loading && !isDeleting) {
+  // Bulk verify handlers
+  const handleBulkVerifyClick = () => {
+    if (!user) {
+      toast.error('You must be logged in to verify offers');
+      return;
+    }
+    if (!bulkVerifyCriteria) {
+      toast.error('Please select a verification criteria');
+      return;
+    }
+    if (bulkVerifyCriteria === 'selected' && selectedOfferIds.size === 0) {
+      toast.error('Please select offers to verify');
+      return;
+    }
+    setShowBulkVerifyDialog(true);
+  };
+
+  const handleBulkVerifyConfirm = async () => {
+    if (!user) return;
+    
+    setIsVerifying(true);
+    let verifiedCount = 0;
+
+    if (bulkVerifyCriteria === 'selected') {
+      // Verify selected offers one by one
+      const verifyPromises = Array.from(selectedOfferIds).map(id => verifyOffer(id, user.uid));
+      const results = await Promise.all(verifyPromises);
+      verifiedCount = results.filter(r => r).length;
+      toast.success(`Verified ${verifiedCount} selected offer(s)`);
+      clearSelection();
+    } else {
+      // Verify by criteria
+      let criteria: any = {};
+
+      if (bulkVerifyCriteria === 'vendor' && bulkVerifyValue) {
+        criteria.vendorId = bulkVerifyValue;
+      } else if (bulkVerifyCriteria === 'unverified') {
+        criteria.verificationStatus = 'unverified';
+      } else if (bulkVerifyCriteria === 'tier' && bulkVerifyValue) {
+        criteria.tier = bulkVerifyValue as VendorTier;
+      }
+
+      verifiedCount = await verifyOffersByCriteria(criteria, user.uid);
+    }
+    
+    setShowBulkVerifyDialog(false);
+    setBulkVerifyCriteria('');
+    setBulkVerifyValue('');
+    
+    // Only refetch once after a delay
+    if (verifiedCount > 0) {
+      setTimeout(() => {
+        setIsVerifying(false);
+        refetch();
+      }, 500);
+    } else {
+      setIsVerifying(false);
+    }
+  };
+
+  if (loading && !isDeleting && !isVerifying) {
     return (
       <Card className="glass border-glass-border">
         <CardContent className="p-6 text-center">
@@ -275,11 +344,13 @@ export const OfferManagementTab = () => {
   return (
     <div className="space-y-6 relative">
       {/* Loading Overlay */}
-      {isDeleting && (
+      {(isDeleting || isVerifying) && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Deleting offers...</p>
+            <p className="text-muted-foreground">
+              {isDeleting ? 'Deleting offers...' : 'Verifying offers...'}
+            </p>
           </div>
         </div>
       )}
@@ -348,84 +419,168 @@ export const OfferManagementTab = () => {
             </Select>
           </div>
 
-          {/* Bulk Delete Toolbar */}
-          <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border">
-            {selectedOfferIds.size > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
-                <span className="text-sm font-medium text-primary">{selectedOfferIds.size} selected</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-sm font-medium">Bulk Delete:</span>
-              <Select value={bulkDeleteCriteria} onValueChange={(value: any) => setBulkDeleteCriteria(value)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select criteria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="selected">
-                    Selected Offers ({selectedOfferIds.size})
-                  </SelectItem>
-                  <SelectItem value="vendor">By Vendor</SelectItem>
-                  <SelectItem value="unverified">Unverified Only</SelectItem>
-                  <SelectItem value="tier">By Tier</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {bulkDeleteCriteria === 'vendor' && (
-                <Select value={bulkDeleteValue} onValueChange={setBulkDeleteValue}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select vendor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vendors.map((vendor) => (
-                      <SelectItem key={vendor.id} value={vendor.id}>
-                        {vendor.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Bulk Actions Toolbar */}
+          <div className="space-y-4">
+            {/* Bulk Verify */}
+            <div className="flex items-center gap-4 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+              {selectedOfferIds.size > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
+                  <span className="text-sm font-medium text-primary">{selectedOfferIds.size} selected</span>
+                </div>
               )}
-              
-              {bulkDeleteCriteria === 'tier' && (
-                <Select value={bulkDeleteValue} onValueChange={setBulkDeleteValue}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select tier" />
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-sm font-medium text-green-600">Bulk Verify:</span>
+                <Select value={bulkVerifyCriteria} onValueChange={(value: any) => setBulkVerifyCriteria(value)}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select criteria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="research">Research</SelectItem>
-                    <SelectItem value="telehealth">Telehealth</SelectItem>
-                    <SelectItem value="brand">Brand</SelectItem>
+                    <SelectItem value="selected">
+                      Selected Offers ({selectedOfferIds.size})
+                    </SelectItem>
+                    <SelectItem value="vendor">By Vendor</SelectItem>
+                    <SelectItem value="unverified">Unverified Only</SelectItem>
+                    <SelectItem value="tier">By Tier</SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {bulkVerifyCriteria === 'vendor' && (
+                  <Select value={bulkVerifyValue} onValueChange={setBulkVerifyValue}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select vendor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map((vendor) => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {bulkVerifyCriteria === 'tier' && (
+                  <Select value={bulkVerifyValue} onValueChange={setBulkVerifyValue}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="research">Research</SelectItem>
+                      <SelectItem value="telehealth">Telehealth</SelectItem>
+                      <SelectItem value="brand">Brand</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700"
+                onClick={handleBulkVerifyClick}
+                disabled={
+                  isVerifying ||
+                  !bulkVerifyCriteria || 
+                  (bulkVerifyCriteria === 'selected' && selectedOfferIds.size === 0) ||
+                  (bulkVerifyCriteria !== 'unverified' && bulkVerifyCriteria !== 'selected' && !bulkVerifyValue) || 
+                  bulkVerifying
+                }
+              >
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                {bulkVerifyCriteria === 'selected' 
+                  ? `Verify ${selectedOfferIds.size} Selected` 
+                  : 'Bulk Verify'}
+              </Button>
+              
+              {selectedOfferIds.size > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={clearSelection}
+                  disabled={isVerifying}
+                >
+                  Clear Selection
+                </Button>
               )}
             </div>
-            
-            <Button
-              variant="destructive"
-              onClick={handleBulkDeleteClick}
-              disabled={
-                isDeleting ||
-                !bulkDeleteCriteria || 
-                (bulkDeleteCriteria === 'selected' && selectedOfferIds.size === 0) ||
-                (bulkDeleteCriteria !== 'unverified' && bulkDeleteCriteria !== 'selected' && !bulkDeleteValue) || 
-                bulkDeleting
-              }
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {bulkDeleteCriteria === 'selected' 
-                ? `Delete ${selectedOfferIds.size} Selected` 
-                : 'Bulk Delete'}
-            </Button>
-            
-            {selectedOfferIds.size > 0 && (
+
+            {/* Bulk Delete */}
+            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border">
+              {selectedOfferIds.size > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-md">
+                  <span className="text-sm font-medium text-primary">{selectedOfferIds.size} selected</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-sm font-medium">Bulk Delete:</span>
+                <Select value={bulkDeleteCriteria} onValueChange={(value: any) => setBulkDeleteCriteria(value)}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select criteria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="selected">
+                      Selected Offers ({selectedOfferIds.size})
+                    </SelectItem>
+                    <SelectItem value="vendor">By Vendor</SelectItem>
+                    <SelectItem value="unverified">Unverified Only</SelectItem>
+                    <SelectItem value="tier">By Tier</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {bulkDeleteCriteria === 'vendor' && (
+                  <Select value={bulkDeleteValue} onValueChange={setBulkDeleteValue}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select vendor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map((vendor) => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {bulkDeleteCriteria === 'tier' && (
+                  <Select value={bulkDeleteValue} onValueChange={setBulkDeleteValue}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="research">Research</SelectItem>
+                      <SelectItem value="telehealth">Telehealth</SelectItem>
+                      <SelectItem value="brand">Brand</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              
               <Button
-                variant="outline"
-                onClick={clearSelection}
-                disabled={isDeleting}
+                variant="destructive"
+                onClick={handleBulkDeleteClick}
+                disabled={
+                  isDeleting ||
+                  !bulkDeleteCriteria || 
+                  (bulkDeleteCriteria === 'selected' && selectedOfferIds.size === 0) ||
+                  (bulkDeleteCriteria !== 'unverified' && bulkDeleteCriteria !== 'selected' && !bulkDeleteValue) || 
+                  bulkDeleting
+                }
               >
-                Clear Selection
+                <Trash2 className="w-4 h-4 mr-2" />
+                {bulkDeleteCriteria === 'selected' 
+                  ? `Delete ${selectedOfferIds.size} Selected` 
+                  : 'Bulk Delete'}
               </Button>
-            )}
+              
+              {selectedOfferIds.size > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={clearSelection}
+                  disabled={isDeleting}
+                >
+                  Clear Selection
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Offers Table */}
@@ -613,6 +768,38 @@ export const OfferManagementTab = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {bulkDeleteCriteria === 'selected' ? `Delete ${selectedOfferIds.size} Offer(s)` : 'Delete All Matching Offers'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Verify Confirmation Dialog */}
+      <AlertDialog open={showBulkVerifyDialog} onOpenChange={setShowBulkVerifyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bulk Verify Offers?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {bulkVerifyCriteria === 'selected' && (
+                <>This will verify <strong>{selectedOfferIds.size}</strong> selected offer(s) and mark them as verified.</>
+              )}
+              {bulkVerifyCriteria === 'unverified' && (
+                <>This will verify all <strong>unverified</strong> offers and mark them as verified.</>
+              )}
+              {bulkVerifyCriteria === 'vendor' && (
+                <>This will verify all offers from the selected vendor and mark them as verified.</>
+              )}
+              {bulkVerifyCriteria === 'tier' && (
+                <>This will verify all offers in the selected tier and mark them as verified.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkVerifyConfirm}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {bulkVerifyCriteria === 'selected' ? `Verify ${selectedOfferIds.size} Offer(s)` : 'Verify All Matching Offers'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
