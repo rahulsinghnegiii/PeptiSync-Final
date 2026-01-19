@@ -26,6 +26,7 @@ import { useVendors } from '@/hooks/useVendors';
 import { ViewToggle, type ViewMode } from './ViewToggle';
 import { PeptideGroupedView } from './PeptideGroupedView';
 import { VendorTableView } from './VendorTableView';
+import { normalizePeptideName } from '@/lib/vendorTierValidators';
 
 type SortOption = 'price_asc' | 'price_desc' | 'alphabetical';
 
@@ -41,10 +42,10 @@ export const ResearchPeptideComparison = () => {
   // Get vendor info
   const getVendor = (vendorId: string) => vendors.find((v) => v.id === vendorId);
 
-  // Get unique peptides for filtering
+  // Get unique peptides for filtering (using normalized names)
   const uniquePeptides = useMemo(() => {
-    const peptides = new Set(offers.map((o) => o.peptide_name));
-    return Array.from(peptides).sort();
+    const normalizedPeptides = new Set(offers.map((o) => normalizePeptideName(o.peptide_name)));
+    return Array.from(normalizedPeptides).sort();
   }, [offers]);
 
   // Filter and sort offers (only for vendor view)
@@ -79,21 +80,23 @@ export const ResearchPeptideComparison = () => {
     return filtered;
   }, [offers, vendors, searchQuery, sortBy, viewMode]);
 
-  // Find best price for each peptide (for highlighting)
+  // Find best price for each peptide (for highlighting) - using normalized names
   const bestPrices = useMemo(() => {
     const priceMap = new Map<string, number>();
     offers.forEach((offer) => {
-      const currentBest = priceMap.get(offer.peptide_name);
+      const normalizedName = normalizePeptideName(offer.peptide_name);
+      const currentBest = priceMap.get(normalizedName);
       const offerPrice = offer.research_pricing?.price_per_mg || Infinity;
       if (!currentBest || offerPrice < currentBest) {
-        priceMap.set(offer.peptide_name, offerPrice);
+        priceMap.set(normalizedName, offerPrice);
       }
     });
     return priceMap;
   }, [offers]);
 
   const isBestPrice = (peptideName: string, pricePerMg: number) => {
-    return bestPrices.get(peptideName) === pricePerMg;
+    const normalizedName = normalizePeptideName(peptideName);
+    return bestPrices.get(normalizedName) === pricePerMg;
   };
 
   if (loading) {

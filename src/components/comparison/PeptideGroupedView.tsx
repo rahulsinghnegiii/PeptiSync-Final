@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/table';
 import { ExternalLink, CheckCircle, Award } from 'lucide-react';
 import type { VendorOffer, Vendor } from '@/types/vendorComparison';
+import { normalizePeptideName } from '@/lib/vendorTierValidators';
 
 interface PeptideGroup {
   peptide_name: string;
@@ -56,15 +57,16 @@ export const PeptideGroupedView = ({ offers, vendors, searchQuery }: PeptideGrou
       return matchesSearch;
     });
 
-    // Group by peptide
+    // Group by NORMALIZED peptide name to combine variants
     filteredOffers.forEach((offer) => {
-      const existing = groupMap.get(offer.peptide_name) || [];
-      groupMap.set(offer.peptide_name, [...existing, offer]);
+      const normalizedName = normalizePeptideName(offer.peptide_name);
+      const existing = groupMap.get(normalizedName) || [];
+      groupMap.set(normalizedName, [...existing, offer]);
     });
 
     // Convert to array and calculate best prices
     const groups: PeptideGroup[] = [];
-    groupMap.forEach((offers, peptideName) => {
+    groupMap.forEach((offers, normalizedPeptideName) => {
       // Sort offers by price_per_mg
       const sortedOffers = [...offers].sort((a, b) => {
         const priceA = a.research_pricing?.price_per_mg || Infinity;
@@ -77,7 +79,7 @@ export const PeptideGroupedView = ({ offers, vendors, searchQuery }: PeptideGrou
       const bestVendor = getVendor(bestOffer.vendor_id);
 
       groups.push({
-        peptide_name: peptideName,
+        peptide_name: normalizedPeptideName, // Use the normalized name as the group name
         offers: sortedOffers,
         bestPrice,
         bestVendor,
@@ -154,6 +156,7 @@ export const PeptideGroupedView = ({ offers, vendors, searchQuery }: PeptideGrou
                       <TableHeader>
                         <TableRow>
                           <TableHead>Vendor</TableHead>
+                          <TableHead>Product Name</TableHead>
                           <TableHead>Size</TableHead>
                           <TableHead>Price</TableHead>
                           <TableHead>$/mg</TableHead>
@@ -180,6 +183,9 @@ export const PeptideGroupedView = ({ offers, vendors, searchQuery }: PeptideGrou
                                 {vendor?.verified && (
                                   <CheckCircle className="w-3 h-3 inline ml-1 text-green-600" />
                                 )}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {offer.peptide_name}
                               </TableCell>
                               <TableCell>{pricing.size_mg} mg</TableCell>
                               <TableCell>${pricing.price_usd.toFixed(2)}</TableCell>

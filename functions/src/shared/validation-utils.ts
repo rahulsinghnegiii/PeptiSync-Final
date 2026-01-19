@@ -63,10 +63,49 @@ export function normalizeVendorName(name: string): string {
 }
 
 /**
- * Normalize peptide name
+ * Normalize peptide name to extract core peptide
+ * Removes formulation variants to group similar products together
+ * 
+ * Examples:
+ * - "BPC-157" -> "BPC-157"
+ * - "BPC-157 Spray" -> "BPC-157"
+ * - "BPC-157 (Capsules)" -> "BPC-157"
+ * - "BPC-157 & TB-500 Blend" -> "BPC-157 & TB-500"
+ * - "BPC blend — BPC-157 + TB-500 (BLOW)" -> "BPC-157 + TB-500"
  */
 export function normalizePeptideName(name: string): string {
-  return name.trim();
+  if (!name) return '';
+  
+  // Trim and normalize whitespace
+  let normalized = name.trim().replace(/\s+/g, ' ');
+  
+  // Remove content in parentheses (formulation details)
+  normalized = normalized.replace(/\s*\([^)]*\)/g, '');
+  
+  // Remove content in square brackets
+  normalized = normalized.replace(/\s*\[[^\]]*\]/g, '');
+  
+  // Remove common formulation keywords at the end
+  const formulations = [
+    'spray', 'capsules', 'capsule', 'tablet', 'tablets', 'nasal spray',
+    'oral', 'injectable', 'injection', 'powder', 'lyophilized',
+    'nasal', 'sublingual', 'topical', 'cream', 'gel'
+  ];
+  
+  const formulationPattern = new RegExp(`\\s*[-–—,/]?\\s*(${formulations.join('|')})\\s*$`, 'gi');
+  normalized = normalized.replace(formulationPattern, '');
+  
+  // Remove trailing "blend" but keep it if it's part of a multi-peptide name
+  normalized = normalized.replace(/\s*[-–—]\s*blend\s*$/gi, '');
+  
+  // Normalize separators in multi-peptide names (keep the peptides, just clean up)
+  // Replace various dashes/separators with standard " + " or " & "
+  normalized = normalized.replace(/\s*[–—]\s*/g, ' - ');
+  
+  // Trim again and collapse multiple spaces
+  normalized = normalized.trim().replace(/\s+/g, ' ');
+  
+  return normalized;
 }
 
 /**
