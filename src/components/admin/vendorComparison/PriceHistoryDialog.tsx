@@ -84,7 +84,7 @@ export const PriceHistoryDialog = ({ offerId, open, onClose }: PriceHistoryDialo
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Price Change History</DialogTitle>
         </DialogHeader>

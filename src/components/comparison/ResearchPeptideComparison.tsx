@@ -111,21 +111,22 @@ export const ResearchPeptideComparison = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className="p-4 sm:pt-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by peptide or vendor name..."
+                placeholder="Search by peptide or vendor..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-10"
               />
             </div>
             {viewMode === 'vendor' && (
               <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-                <SelectTrigger className="w-full md:w-[220px]">
+                <SelectTrigger className="w-full sm:w-auto">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -153,11 +154,11 @@ export const ResearchPeptideComparison = () => {
       <ViewToggle view={viewMode} onViewChange={setViewMode} />
 
       {/* Results Info */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Showing {viewMode === 'peptide' ? uniquePeptides.length : filteredOffers.length} {viewMode === 'peptide' ? 'peptide' : 'verified offer'}{(viewMode === 'peptide' ? uniquePeptides.length : filteredOffers.length) !== 1 ? 's' : ''}
         </p>
-        <Badge variant="outline" className="flex items-center gap-1">
+        <Badge variant="outline" className="flex items-center gap-1 w-fit text-xs">
           <CheckCircle className="w-3 h-3" />
           Verified Only
         </Badge>
@@ -180,14 +181,29 @@ export const ResearchPeptideComparison = () => {
 
       {/* Tier-Specific Notes */}
       <Card className="bg-muted/50">
-        <CardContent className="pt-6">
-          <h4 className="font-semibold mb-2">About Research Peptide Pricing</h4>
-          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>Prices shown are per milligram ($/mg) for easy comparison</li>
-            <li>Shipping costs are additional and shown separately</li>
-            <li>Lab test certificates may be available from some vendors</li>
-            <li>Research peptides are for research purposes only, not for human consumption</li>
-            <li>Always verify current pricing and availability with vendors directly</li>
+        <CardContent className="p-4 sm:pt-6">
+          <h4 className="font-semibold mb-3 text-sm sm:text-base">About Research Peptide Pricing</h4>
+          <ul className="text-xs sm:text-sm text-muted-foreground space-y-1.5">
+            <li className="flex gap-2">
+              <span className="text-primary flex-shrink-0">•</span>
+              <span>Prices shown are per milligram ($/mg) for easy comparison</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary flex-shrink-0">•</span>
+              <span>Shipping costs are additional and shown separately</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary flex-shrink-0">•</span>
+              <span>Lab test certificates may be available from some vendors</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary flex-shrink-0">•</span>
+              <span>Research peptides are for research purposes only</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary flex-shrink-0">•</span>
+              <span>Always verify current pricing and availability directly</span>
+            </li>
           </ul>
         </CardContent>
       </Card>

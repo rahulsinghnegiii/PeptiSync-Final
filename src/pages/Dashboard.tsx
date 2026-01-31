@@ -155,33 +155,33 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <img 
               src="/logo.png" 
               alt="PeptiSync Logo" 
               className="w-8 h-8 object-contain"
             />
-            <h1 className="text-2xl font-bold text-gradient">PeptiSync Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gradient">PeptiSync Dashboard</h1>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
-              <Home className="w-4 h-4 mr-2" />
-              Home
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="text-xs sm:text-sm">
+              <Home className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Home</span>
             </Button>
             {isAdmin && (
-              <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
-                <Shield className="w-4 h-4 mr-2" />
-                Admin Panel
+              <Button variant="outline" size="sm" onClick={() => navigate("/admin")} className="text-xs sm:text-sm">
+                <Shield className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Admin Panel</span>
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={() => navigate("/settings")}>
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
+            <Button variant="ghost" size="sm" onClick={() => navigate("/settings")} className="text-xs sm:text-sm">
+              <Settings className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Settings</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </div>
         </div>
@@ -197,23 +197,23 @@ const Dashboard = () => {
         >
           <Card className="glass border-glass-border">
             <CardHeader className="pb-4">
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Avatar className="w-16 h-16">
                   <AvatarImage src={profile.avatarUrl || ""} />
                   <AvatarFallback className="bg-primary/10 text-primary text-lg">
                     {profile.fullName?.[0] || profile.email?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <CardTitle className="text-2xl">
+                <div className="flex-1">
+                  <CardTitle className="text-xl sm:text-2xl break-words">
                     Welcome back, {profile.fullName || user?.displayName || profile.email?.split('@')[0] || "User"}!
                   </CardTitle>
-                  <p className="text-muted-foreground">{profile.email}</p>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Badge variant="secondary" className="capitalize">
+                  <p className="text-muted-foreground text-sm break-all">{profile.email}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+                    <Badge variant="secondary" className="capitalize w-fit">
                       {profile.membershipTier} Member
                     </Badge>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       Joined {profile.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
                     </span>
                   </div>

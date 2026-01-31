@@ -52,7 +52,7 @@ export const UploadPreviewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-full sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Upload Preview</DialogTitle>
           <DialogDescription>
@@ -62,7 +62,7 @@ export const UploadPreviewDialog = ({
 
         <div className="space-y-4 overflow-y-auto flex-1">
           {/* Summary */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 border rounded-lg">
               <p className="text-sm text-muted-foreground">Total Rows</p>
               <p className="text-2xl font-bold">{parseResult.total_rows}</p>

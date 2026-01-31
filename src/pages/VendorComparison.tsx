@@ -68,27 +68,28 @@ export default function VendorComparison() {
       
       {/* Page Header with Back Button */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm mt-16">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex items-center gap-2 mb-3">
             <Link to="/">
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 text-xs sm:text-sm"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
+                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Back to Home</span>
+                <span className="sm:hidden">Back</span>
               </Button>
             </Link>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gradient">Vendor Price Comparison</h1>
-              <p className="text-muted-foreground mt-1">
-                Compare verified vendor pricing across different tiers
+              <h1 className="text-2xl sm:text-3xl font-bold text-gradient">Vendor Price Comparison</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Compare verified vendor pricing
               </p>
             </div>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs w-fit">
               Data Verified
             </Badge>
           </div>
@@ -96,48 +97,60 @@ export default function VendorComparison() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
         {/* Disclaimer Alert */}
         <Alert className="mb-6">
-          <InfoIcon className="w-4 h-4" />
+          <InfoIcon className="w-4 h-4 flex-shrink-0" />
           <AlertDescription>
-            <p className="font-medium mb-1">Important Information:</p>
-            <ul className="text-sm space-y-1 list-disc list-inside">
-              <li>Prices shown are for research purposes only</li>
-              <li>Always verify current pricing directly with vendors</li>
-              <li>Pricing data is updated regularly but may not reflect real-time changes</li>
-              <li>Research peptides are not for human consumption</li>
+            <p className="font-medium mb-2 text-sm">Important Information:</p>
+            <ul className="text-xs sm:text-sm space-y-1.5">
+              <li className="flex gap-2">
+                <span className="text-primary flex-shrink-0">•</span>
+                <span>Prices shown are for research purposes only</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary flex-shrink-0">•</span>
+                <span>Always verify current pricing directly with vendors</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary flex-shrink-0">•</span>
+                <span>Pricing data is updated regularly but may not reflect real-time changes</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary flex-shrink-0">•</span>
+                <span>Research peptides are not for human consumption</span>
+              </li>
             </ul>
           </AlertDescription>
         </Alert>
 
         {/* Tier Comparison Tabs */}
         <Card className="glass border-glass-border">
-          <CardHeader>
-            <CardTitle className="text-2xl">Select Vendor Tier</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Each tier has different pricing structures and comparison metrics
+          <CardHeader className="px-4 py-5 sm:px-6">
+            <CardTitle className="text-xl sm:text-2xl">Select Vendor Tier</CardTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              Each tier has different pricing structures
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-6 sm:px-6">
             <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
-              <TabsList className="grid w-full grid-cols-3 mb-6">
-                <TabsTrigger value="research">
-                  <div className="flex flex-col items-center gap-1">
-                    <span>Research Peptides</span>
+              <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 h-auto">
+                <TabsTrigger value="research" className="py-3 sm:py-4">
+                  <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <span className="text-sm sm:text-base font-medium">Research Peptides</span>
                     <span className="text-xs text-muted-foreground">$/mg comparison</span>
                   </div>
                 </TabsTrigger>
-                <TabsTrigger value="telehealth">
-                  <div className="flex flex-col items-center gap-1">
-                    <span>Telehealth & GLP Clinics</span>
+                <TabsTrigger value="telehealth" className="py-3 sm:py-4">
+                  <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <span className="text-sm sm:text-base font-medium">Telehealth & GLP</span>
                     <span className="text-xs text-muted-foreground">Subscription pricing</span>
                   </div>
                 </TabsTrigger>
-                <TabsTrigger value="brand">
-                  <div className="flex flex-col items-center gap-1">
-                    <span>Brand / Originator GLPs</span>
-                    <span className="text-xs text-muted-foreground">Dose-level pricing</span>
+                <TabsTrigger value="brand" className="py-3 sm:py-4">
+                  <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                    <span className="text-sm sm:text-base font-medium">Brand / Originator</span>
+                    <span className="text-xs text-muted-foreground">Dose pricing</span>
                   </div>
                 </TabsTrigger>
               </TabsList>
@@ -158,7 +171,7 @@ export default function VendorComparison() {
         </Card>
 
         {/* Footer Note */}
-        <div className="mt-8 mb-8 text-center text-sm text-muted-foreground">
+        <div className="mt-6 sm:mt-8 mb-6 sm:mb-8 text-center text-xs sm:text-sm text-muted-foreground px-4">
           <p>
             Last updated: {new Date().toLocaleDateString()}. Pricing data is provided for informational
             purposes only.

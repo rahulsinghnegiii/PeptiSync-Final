@@ -214,7 +214,7 @@ export function ScraperMonitoringTab() {
               <p className="text-sm mt-2">Click "Run All Scrapers Now" to start your first job</p>
             </div>
           ) : (
-            <div className="border rounded-lg">
+            <div className="overflow-x-auto border rounded-lg">
               <Table>
                 <TableHeader>
                   <TableRow>

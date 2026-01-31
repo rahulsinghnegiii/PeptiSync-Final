@@ -275,7 +275,7 @@ export const PdfManualEntryForm = ({
 
 // Research Peptide Fields
 const ResearchPricingFields = ({ form, index }: { form: any; index: number }) => (
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <FormField
       control={form.control}
       name={`entries.${index}.vendor_name`}
@@ -385,7 +385,7 @@ const ResearchPricingFields = ({ form, index }: { form: any; index: number }) =>
 
 // Telehealth Fields
 const TelehealthPricingFields = ({ form, index }: { form: any; index: number }) => (
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <FormField
       control={form.control}
       name={`entries.${index}.vendor_name`}
@@ -584,7 +584,7 @@ const TelehealthPricingFields = ({ form, index }: { form: any; index: number }) 
 
 // Brand GLP Fields
 const BrandPricingFields = ({ form, index }: { form: any; index: number }) => (
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <FormField
       control={form.control}
       name={`entries.${index}.brand_name`}

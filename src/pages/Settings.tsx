@@ -87,8 +87,8 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -98,7 +98,7 @@ const Settings = () => {
                 alt="PeptiSync Logo" 
                 className="w-8 h-8 object-contain"
               />
-              <h1 className="text-2xl font-bold text-gradient">Settings</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gradient">Settings</h1>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@ const Settings = () => {
           transition={{ duration: 0.5 }}
         >
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 lg:w-auto lg:inline-grid">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Profile

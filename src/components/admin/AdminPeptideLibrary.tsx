@@ -27,26 +27,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Loader2, Eye, EyeOff, Search, Upload, Trash } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Eye, EyeOff, Search, Upload, Trash, Download } from "lucide-react";
 import { usePeptideLibraryManagement } from "@/hooks/usePeptideLibraryManagement";
+import { useAutoImportPeptides, type AutoImportResult, type PeptideCandidate } from "@/hooks/useAutoImportPeptides";
 import { PeptideLibraryForm } from "./PeptideLibraryForm";
 import { BulkImportDialog } from "./BulkImportDialog";
+import { AutoImportDialog } from "./AutoImportDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { XCircle } from "lucide-react";
 import { PEPTIDE_CATEGORIES } from "@/lib/constants";
+import { auth } from "@/lib/firebase";
 import type { PeptideLibraryEntry } from "@/types/peptide";
 
 export const AdminPeptideLibrary = () => {
   const { libraryEntries, loading, error, createLibraryEntry, updateLibraryEntry, deleteLibraryEntry, toggleLibraryVisibility, deleteAllLibraryEntries } = usePeptideLibraryManagement();
+  const { scanning, importing, progress, total, currentPeptide, scanForNewPeptides, saveSelectedPeptides } = useAutoImportPeptides();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<PeptideLibraryEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [visibilityFilter, setVisibilityFilter] = useState<string>("all");
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [isAutoImportOpen, setIsAutoImportOpen] = useState(false);
+  const [peptideCandidates, setPeptideCandidates] = useState<PeptideCandidate[]>([]);
+  const [skippedCount, setSkippedCount] = useState(0);
+  const [autoImportResult, setAutoImportResult] = useState<AutoImportResult | null>(null);
   const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -85,6 +93,30 @@ export const AdminPeptideLibrary = () => {
 
   const handleBulkImportSuccess = () => {
     // Refresh will happen automatically via the hook
+  };
+
+  const handleAutoImport = async () => {
+    setIsAutoImportOpen(true);
+    setPeptideCandidates([]);
+    setSkippedCount(0);
+    setAutoImportResult(null);
+    
+    // Scan for new peptides
+    const { candidates, skipped } = await scanForNewPeptides();
+    setPeptideCandidates(candidates);
+    setSkippedCount(skipped);
+  };
+
+  const handleImportSelected = async (selected: PeptideCandidate[]) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      toast.error('Authentication required');
+      return;
+    }
+
+    const result = await saveSelectedPeptides(selected, currentUser.uid);
+    setAutoImportResult(result);
+    setPeptideCandidates([]);
   };
 
   const handleDeleteAll = async () => {
@@ -139,6 +171,14 @@ export const AdminPeptideLibrary = () => {
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Bulk Import
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleAutoImport}
+                disabled={scanning || importing}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {scanning ? 'Scanning...' : importing ? 'Importing...' : 'Auto Import from Vendors'}
               </Button>
               <Dialog open={isFormOpen} onOpenChange={(open) => {
                 setIsFormOpen(open);
@@ -273,6 +313,21 @@ export const AdminPeptideLibrary = () => {
       open={isBulkImportOpen}
       onOpenChange={setIsBulkImportOpen}
       onSuccess={handleBulkImportSuccess}
+    />
+
+    {/* Auto Import Dialog */}
+    <AutoImportDialog
+      open={isAutoImportOpen}
+      onOpenChange={setIsAutoImportOpen}
+      scanning={scanning}
+      importing={importing}
+      progress={progress}
+      total={total}
+      currentPeptide={currentPeptide}
+      candidates={peptideCandidates}
+      skippedCount={skippedCount}
+      result={autoImportResult}
+      onImportSelected={handleImportSelected}
     />
 
     {/* Delete All Confirmation Dialog */}

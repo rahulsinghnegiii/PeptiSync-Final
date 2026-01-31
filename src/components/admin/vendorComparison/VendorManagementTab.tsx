@@ -143,7 +143,7 @@ export const VendorManagementTab = () => {
 
       <CardContent className="space-y-4">
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -154,7 +154,7 @@ export const VendorManagementTab = () => {
             />
           </div>
           <Select value={tierFilter} onValueChange={(value) => setTierFilter(value as VendorTier | 'all')}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Filter by tier" />
             </SelectTrigger>
             <SelectContent>
@@ -165,7 +165,7 @@ export const VendorManagementTab = () => {
             </SelectContent>
           </Select>
           <Select value={verifiedFilter} onValueChange={(value) => setVerifiedFilter(value as typeof verifiedFilter)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -195,7 +195,7 @@ export const VendorManagementTab = () => {
             )}
           </div>
         ) : (
-          <div className="border rounded-md">
+          <div className="overflow-x-auto border rounded-md">
             <Table>
               <TableHeader>
                 <TableRow>

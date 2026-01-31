@@ -152,7 +152,7 @@ const ProfileTab = ({ profile, onProfileUpdate }: ProfileTabProps) => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar Upload */}
-          <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <Avatar className="w-24 h-24">
               <AvatarImage src={avatarPreview || ""} />
               <AvatarFallback className="bg-primary/10 text-primary text-2xl">

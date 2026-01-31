@@ -187,7 +187,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Offer</DialogTitle>
         </DialogHeader>
@@ -262,7 +262,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
             {/* Tier-Specific Fields */}
             {selectedTier === 'research' && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="size_mg"
@@ -290,7 +290,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                     )}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="shipping_usd"
@@ -323,7 +323,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
 
             {selectedTier === 'telehealth' && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="subscription_price_monthly"
@@ -351,7 +351,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                     )}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="subscription_includes_medication"
@@ -404,7 +404,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
                 )}
                 
                 {/* REQUIRED TRANSPARENCY FIELDS */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="glp_type"
@@ -481,7 +481,7 @@ export const OfferFormDialog = ({ open, onOpenChange, onSave }: OfferFormDialogP
 
             {selectedTier === 'brand' && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="dose_strength"

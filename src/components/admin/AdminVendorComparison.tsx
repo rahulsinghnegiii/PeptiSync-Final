@@ -30,7 +30,7 @@ export const AdminVendorComparison = () => {
       </div>
 
       <Tabs defaultValue="vendors" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
           <TabsTrigger value="vendors" className="flex items-center gap-2">
             <Store className="w-4 h-4" />
             Vendors

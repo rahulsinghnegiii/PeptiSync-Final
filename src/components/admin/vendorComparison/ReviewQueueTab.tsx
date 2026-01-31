@@ -272,7 +272,7 @@ export const ReviewQueueTab = () => {
               />
             </div>
             <Select value={filterTier} onValueChange={(value: any) => setFilterTier(value)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Tier" />
               </SelectTrigger>
               <SelectContent>
@@ -283,7 +283,7 @@ export const ReviewQueueTab = () => {
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
@@ -313,7 +313,7 @@ export const ReviewQueueTab = () => {
           )}
 
           {/* Offers Table */}
-          <div className="rounded-md border">
+          <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

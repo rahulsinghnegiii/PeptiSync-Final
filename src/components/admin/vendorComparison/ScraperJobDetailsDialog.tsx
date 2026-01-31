@@ -235,7 +235,7 @@ export function ScraperJobDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-full sm:max-w-5xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Scraper Job Details</DialogTitle>
           <DialogDescription>
@@ -273,7 +273,7 @@ export function ScraperJobDetailsDialog({
                   <CardTitle>Job Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Job ID</p>
                       <p className="font-mono text-sm">{job.job_id}</p>

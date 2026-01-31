@@ -381,7 +381,7 @@ export const OfferManagementTab = () => {
               />
             </div>
             <Select value={filterTier} onValueChange={(value: any) => setFilterTier(value)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Tier" />
               </SelectTrigger>
               <SelectContent>
@@ -392,7 +392,7 @@ export const OfferManagementTab = () => {
               </SelectContent>
             </Select>
             <Select value={filterVendor} onValueChange={setFilterVendor}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filter by Vendor" />
               </SelectTrigger>
               <SelectContent>
@@ -407,7 +407,7 @@ export const OfferManagementTab = () => {
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
@@ -431,7 +431,7 @@ export const OfferManagementTab = () => {
               <div className="flex items-center gap-2 flex-1">
                 <span className="text-sm font-medium text-green-600">Bulk Verify:</span>
                 <Select value={bulkVerifyCriteria} onValueChange={(value: any) => setBulkVerifyCriteria(value)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="Select criteria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -446,7 +446,7 @@ export const OfferManagementTab = () => {
                 
                 {bulkVerifyCriteria === 'vendor' && (
                   <Select value={bulkVerifyValue} onValueChange={setBulkVerifyValue}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px]">
                       <SelectValue placeholder="Select vendor" />
                     </SelectTrigger>
                     <SelectContent>
@@ -461,7 +461,7 @@ export const OfferManagementTab = () => {
                 
                 {bulkVerifyCriteria === 'tier' && (
                   <Select value={bulkVerifyValue} onValueChange={setBulkVerifyValue}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Select tier" />
                     </SelectTrigger>
                     <SelectContent>
@@ -512,7 +512,7 @@ export const OfferManagementTab = () => {
               <div className="flex items-center gap-2 flex-1">
                 <span className="text-sm font-medium">Bulk Delete:</span>
                 <Select value={bulkDeleteCriteria} onValueChange={(value: any) => setBulkDeleteCriteria(value)}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="Select criteria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -527,7 +527,7 @@ export const OfferManagementTab = () => {
                 
                 {bulkDeleteCriteria === 'vendor' && (
                   <Select value={bulkDeleteValue} onValueChange={setBulkDeleteValue}>
-                    <SelectTrigger className="w-[200px]">
+                    <SelectTrigger className="w-full sm:w-[200px]">
                       <SelectValue placeholder="Select vendor" />
                     </SelectTrigger>
                     <SelectContent>
@@ -542,7 +542,7 @@ export const OfferManagementTab = () => {
                 
                 {bulkDeleteCriteria === 'tier' && (
                   <Select value={bulkDeleteValue} onValueChange={setBulkDeleteValue}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Select tier" />
                     </SelectTrigger>
                     <SelectContent>
@@ -584,7 +584,7 @@ export const OfferManagementTab = () => {
           </div>
 
           {/* Offers Table */}
-          <div className="rounded-md border">
+          <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

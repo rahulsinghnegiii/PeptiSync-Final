@@ -220,7 +220,7 @@ export const OfferEditDialog = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {offer.tier === 'research' && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="size_mg"
@@ -279,7 +279,7 @@ export const OfferEditDialog = ({
 
             {offer.tier === 'telehealth' && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="subscription_price_monthly"
@@ -425,7 +425,7 @@ export const OfferEditDialog = ({
 
             {offer.tier === 'brand' && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="dose_strength"

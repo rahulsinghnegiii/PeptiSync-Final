@@ -134,7 +134,7 @@ export const UploadHistoryTable = ({ uploads, loading, onRefresh }: UploadHistor
         </Button>
       </div>
 
-      <div className="border rounded-md">
+      <div className="overflow-x-auto border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
